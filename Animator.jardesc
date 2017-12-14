@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="Animation Controller/Animator.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/Animation Controller/Animator.jardesc" exportErrors="false" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" mainClassHandleIdentifier="=Animation Controller/src&lt;ostrowski.graphics{GLScene.java[GLScene" manifestLocation="/Animation Controller/Manifest.mf" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
+        <file path="/Animation Controller/.project"/>
+        <file path="/Animation Controller/.classpath"/>
+        <file path="/Animation Controller/shield_medium.png"/>
+        <file path="/Animation Controller/shield_medium.png0001.png"/>
+        <javaElement handleIdentifier="=Animation Controller/src"/>
+        <file path="/Animation Controller/shield_small.png0001.png"/>
+        <file path="/Animation Controller/shield_small.png"/>
+        <file path="/Animation Controller/Animator.bat"/>
+        <file path="/Animation Controller/shield_large.png0001.png"/>
+        <file path="/Animation Controller/shield_large.png"/>
+    </selectedElements>
+</jardesc>
