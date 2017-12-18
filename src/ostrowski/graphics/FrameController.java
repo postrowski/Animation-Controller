@@ -30,8 +30,8 @@ import ostrowski.graphics.texture.Texture;
 public class FrameController implements ModifyListener, FocusListener, SelectionListener
 {
 
-   private GLScene _scene;
-   private GLView  _view;
+   private final GLScene _scene;
+   private final GLView  _view;
    HumanBody       _humanModel;
    List<Text>      _textFields = new ArrayList<>();
    private Button  _confirmButton;
@@ -44,7 +44,7 @@ public class FrameController implements ModifyListener, FocusListener, Selection
    private Button  _leftFootPlanted;
 
    public FrameController(Composite parent, GLScene scene) {
-      _view = new GLView(parent);
+      _view = new GLView(parent, true/*withControls*/);
       _view.addDefaultMap();
       _view.setElevationPower(2);
       _scene = scene;
@@ -224,12 +224,22 @@ public class FrameController implements ModifyListener, FocusListener, Selection
 
    private Text createBlock(Group parent, String partName, String angleName, Helper helper, List<Text> textFields) {
       String name = "Front";
-      if (angleName.equalsIgnoreCase("f")) name = "Front";
-      else if (angleName.equalsIgnoreCase("t")) name = "Twist";
-      else if (angleName.equalsIgnoreCase("s")) name = "Side";
+      if (angleName.equalsIgnoreCase("f")) {
+         name = "Front";
+      }
+      else if (angleName.equalsIgnoreCase("t")) {
+         name = "Twist";
+      }
+      else if (angleName.equalsIgnoreCase("s")) {
+         name = "Side";
+      }
       else if (angleName.equalsIgnoreCase("h")) {
-         if (partName.equalsIgnoreCase("torso")) name = "RghtShldrUp";
-         else name = "LeftHipUp";
+         if (partName.equalsIgnoreCase("torso")) {
+            name = "RghtShldrUp";
+         }
+         else {
+            name = "LeftHipUp";
+         }
       }
       else if (angleName.equalsIgnoreCase("l")) {
          name = "len.offset";
@@ -277,7 +287,9 @@ public class FrameController implements ModifyListener, FocusListener, Selection
          if (part != null) {
             HashMap<String, Float> map = part.getAnglesMap();
             Float value = map.get(angleName);
-            if (value == null) value = 0f;
+            if (value == null) {
+               value = 0f;
+            }
             widget.setText(String.valueOf(value));
          }
       }
@@ -292,7 +304,9 @@ public class FrameController implements ModifyListener, FocusListener, Selection
 
    @Override
    public void focusLost(FocusEvent e) {
-      if (_dirty) readTextValuesFromModel();
+      if (_dirty) {
+         readTextValuesFromModel();
+      }
    }
 
    public void setModelData(AnimationFrame frame) {

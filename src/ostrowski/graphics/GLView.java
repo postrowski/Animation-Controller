@@ -54,15 +54,15 @@ public class GLView implements Listener
 
    private static float                 _DEFAULT_FIELD_OF_VIEW  = 45.0f;
    private int                          _zoomPower              = 0;
-   private final int                          _zoomPowerMin           = -5;
-   private final int                          _zoomPowerMax           = 5;
+   private final int                    _zoomPowerMin           = -5;
+   private final int                    _zoomPowerMax           = 5;
    private int                          _elevationPower         = 4;
-   private final int                          _elevationPowerMin      = -1;
-   private final int                          _elevationPowerMax      = 10;
+   private final int                    _elevationPowerMin      = -1;
+   private final int                    _elevationPowerMax      = 10;
    private float                        _fieldOfViewYangle      = _DEFAULT_FIELD_OF_VIEW;
-   private final float                        _zNear                  = 0.5f;
-   private final float                        _zFar                   = 3500.0f;
-   private final float                        _heightScale            = 60f;
+   private final float                  _zNear                  = 0.5f;
+   private final float                  _zFar                   = 3500.0f;
+   private final float                  _heightScale            = 60f;
    public Tuple3                        _cameraPosition         = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
    public Tuple3                        _minOccupiedPosition    = new Tuple3(0f, 0f, 0f);
    public Tuple3                        _maxOccupiedPosition    = new Tuple3(0f, 0f, 0f);
@@ -94,7 +94,7 @@ public class GLView implements Listener
    private final ArrayList<TexturedObject>    _selectedObjects        = new ArrayList<>();
    private boolean _watchMouseMove;
 
-   public GLView(Composite parent) {
+   public GLView(Composite parent, boolean withControls) {
       _material = BufferUtils.createFloatBuffer(4);
 
       GLData data = new GLData();
@@ -107,6 +107,7 @@ public class GLView implements Listener
       _GlCanvas.addListener(SWT.MouseMove, this);
       _GlCanvas.addListener(SWT.MouseDoubleClick, this);
       _GlCanvas.addListener(SWT.MouseExit, this);
+      _GlCanvas.addListener(SWT.MouseVerticalWheel, this);
 
       if (!useAsCurrentCanvas()) {
          return;
@@ -131,17 +132,19 @@ public class GLView implements Listener
       GL11.glClearDepth(1.0);
       GL11.glLineWidth(2);
 
-      try {
-         _terrainTexture = _textureLoader.getTexture("res/texture_terrain.png");
-         _terrainTextureSelected = _textureLoader.getTexture("res/texture_terrain_selected.png");
+      if (withControls) {
+         try {
+            _terrainTexture = _textureLoader.getTexture("res/texture_terrain.png");
+            _terrainTextureSelected = _textureLoader.getTexture("res/texture_terrain_selected.png");
 
-         Texture fontTexture = _textureLoader.getTexture("res/font.png");
-         _font = new BitmapFont(fontTexture, 32 /*characterWidth*/, 32/*characterHeight*/);
+            Texture fontTexture = _textureLoader.getTexture("res/font.png");
+            _font = new BitmapFont(fontTexture, 32 /*characterWidth*/, 32/*characterHeight*/);
 
-         Texture controlsTexture = _textureLoader.getTexture("res/viewControls.png");
-         _zoomButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 0, 123, 49));
-         _elevationButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 50, 49, 91));
-      } catch (IOException e) {
+            Texture controlsTexture = _textureLoader.getTexture("res/viewControls.png");
+            _zoomButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 0, 123, 49));
+            _elevationButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 50, 49, 91));
+         } catch (IOException e) {
+         }
       }
       incrementCameraAngle(0f, -10f);
    }
@@ -425,6 +428,27 @@ public class GLView implements Listener
       GL11.glTranslatef(_cameraPosition.getX(), _cameraPosition.getY(), _cameraPosition.getZ()); // translate into perspective view
    }
 
+   private void zoom(int zoomInOut, Display display) {
+      if (zoomInOut == 0) {
+         _zoomPower = 0;
+      }
+      else {
+         _zoomPower += zoomInOut;
+         _zoomPower = Math.max(_zoomPower, _zoomPowerMin);
+         _zoomPower = Math.min(_zoomPower, _zoomPowerMax);
+      }
+      _fieldOfViewYangle = (float) (_DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, _zoomPower));
+
+      useAsCurrentCanvas();
+      GL11.glMatrixMode(GL11.GL_PROJECTION);
+      GL11.glLoadIdentity();
+      float fAspect = (((float) _width) / _height);
+      GLU.gluPerspective(_fieldOfViewYangle, fAspect, _zNear, _zFar);
+      GL11.glMatrixMode(GL11.GL_MODELVIEW);
+      GL11.glLoadIdentity();
+      drawScene(display);
+   }
+
    @Override
    public void handleEvent(Event event) {
       //long eventHandleStartTime = System.currentTimeMillis();
@@ -437,56 +461,31 @@ public class GLView implements Listener
             useAsCurrentCanvas();
             _buttonDown = event.button;
             if (_buttonDown == 1) {
-               if (_zoomButtons.containsPoint(event.x, event.y)) {
-                  boolean zoomChanged = false;
+               if ((_zoomButtons != null) && (_zoomButtons.containsPoint(event.x, event.y))) {
                   int buttonRadius = _zoomButtons.getHeight() / 2;
                   int dist2FromZoomOut = getDistSquared(event.x, event.y, (_zoomLeft + buttonRadius), (_zoomTop + buttonRadius));
                   //dist2FromZoomOut *= 1.2;
                   if (dist2FromZoomOut < (buttonRadius * buttonRadius)) {
-                     if (--_zoomPower < _zoomPowerMin) {
-                        _zoomPower = _zoomPowerMin;
-                     }
-                     else {
-                        _fieldOfViewYangle = (float) (_DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, _zoomPower));
-                        zoomChanged = true;
-                     }
+                     zoom(-1, event.display);
                   }
                   else {
                      int dist2FromZoomIn = getDistSquared(event.x, event.y, ((_zoomLeft + _zoomButtons.getWidth()) - buttonRadius),
                                                           ((_zoomTop + _zoomButtons.getHeight()) - buttonRadius));
                      //dist2FromZoomIn *= 1.2;
                      if (dist2FromZoomIn < (buttonRadius * buttonRadius)) {
-                        if (++_zoomPower > _zoomPowerMax) {
-                           _zoomPower = _zoomPowerMax;
-                        }
-                        else {
-                           _fieldOfViewYangle = (float) (_DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, _zoomPower));
-                           zoomChanged = true;
-                        }
+                        zoom(1, event.display);
                      }
                      else {
                         int dist2FromZoomReset = getDistSquared(event.x, event.y, (_zoomLeft + (_zoomButtons.getWidth() / 2)),
                                                                 (_zoomTop + (_zoomButtons.getHeight() / 2)));
                         if (dist2FromZoomReset < (buttonRadius * buttonRadius)) {
-                           _fieldOfViewYangle = _DEFAULT_FIELD_OF_VIEW;
-                           _zoomPower = 0;
-                           zoomChanged = true;
+                           zoom(0, event.display);
                         }
                      }
                   }
-                  if (zoomChanged) {
-                     useAsCurrentCanvas();
-                     GL11.glMatrixMode(GL11.GL_PROJECTION);
-                     GL11.glLoadIdentity();
-                     float fAspect = (((float) _width) / _height);
-                     GLU.gluPerspective(_fieldOfViewYangle, fAspect, _zNear, _zFar);
-                     GL11.glMatrixMode(GL11.GL_MODELVIEW);
-                     GL11.glLoadIdentity();
-                     drawScene(event.display);
-                  }
                   return;
                }
-               if (_elevationButtons.containsPoint(event.x, event.y)) {
+               if ((_elevationButtons != null) && (_elevationButtons.containsPoint(event.x, event.y))) {
                   int buttonRadius = _elevationButtons.getWidth() / 2;
                   int elevationCenterY = _elevationTop + (_elevationButtons.getHeight() / 2);
                   int dist2FromElevationUp = getDistSquared(event.x, event.y, (_elevationLeft + buttonRadius), (_elevationTop + buttonRadius));
@@ -680,6 +679,10 @@ public class GLView implements Listener
             return;
          }
          else if (event.type == SWT.MouseExit) {
+            return;
+         }
+         else if (event.type == SWT.MouseVerticalWheel) {
+            zoom((event.count / 3), event.display);
             return;
          }
          //else if (event.type == SWT.Paint) {

@@ -33,8 +33,8 @@ import ostrowski.graphics.texture.Texture;
 
 public class AnimationController implements SelectionListener, ModifyListener
 {
-   private GLScene   _scene;
-   private GLView    _view;
+   private final GLScene   _scene;
+   private final GLView    _view;
    private HumanBody _humanModel;
    //private Message                      _message;
    private Table     _table;
@@ -54,7 +54,7 @@ public class AnimationController implements SelectionListener, ModifyListener
    private Text _repeatCount;
 
    public AnimationController(Composite parent, GLScene scene) {
-      _view = new GLView(parent);
+      _view = new GLView(parent, true/*withControls*/);
       _view.addDefaultMap();
       _scene = scene;
    }
@@ -80,7 +80,7 @@ public class AnimationController implements SelectionListener, ModifyListener
 //      message._visible = true;
 //      _humanModel._messages.add(message );
       _view.addModel(_humanModel);
-      
+
       _scene._frameController.loadRace(race, texture);
 
       boolean first = true;
@@ -115,7 +115,7 @@ public class AnimationController implements SelectionListener, ModifyListener
       GridData layoutData = new GridData();
       layoutData.grabExcessVerticalSpace = true;
       groupCenter.setLayoutData(layoutData);
-      
+
 //      _openButton = new Button(groupTop, SWT.FLAT);
 //      _openButton.setText("open");
 //      _openButton.addSelectionListener(this);
@@ -179,8 +179,9 @@ public class AnimationController implements SelectionListener, ModifyListener
       }
       // add the bows into this combobox
       for (Weapon weapon : Weapon.values()) {
-         if (weapon.toString().contains("bow_"))
+         if (weapon.toString().contains("bow_")) {
             entries.add(weapon.toString());
+         }
       }
       Combo combo = helper.createCombo(parent, 0, 1/*hSpan*/, entries);
       combo.addSelectionListener(this);
@@ -192,15 +193,16 @@ public class AnimationController implements SelectionListener, ModifyListener
       entries.add("");
       for (Weapon weapon : Weapon.values()) {
          // don't put the bows into this combobox
-         if (weapon.toString().contains("bow_"))
+         if (weapon.toString().contains("bow_")) {
             continue;
+         }
          entries.add(weapon.toString());
       }
       Combo combo = helper.createCombo(parent, 0, 1/*hSpan*/, entries);
       combo.addSelectionListener(this);
       return combo;
    }
-   
+
    private Combo createArmorCombo(Group parent, Helper helper) {
       List<String> entries = new ArrayList<>();
       for (Armor armor : Armor.values()) {
@@ -210,7 +212,9 @@ public class AnimationController implements SelectionListener, ModifyListener
          for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
             boolean upperCase = Character.isUpperCase(ch);
-            if (upperCase && currentCharUpperCase) sb.append(' ');
+            if (upperCase && currentCharUpperCase) {
+               sb.append(' ');
+            }
             sb.append(ch);
             currentCharUpperCase = upperCase;
          }
@@ -240,8 +244,12 @@ public class AnimationController implements SelectionListener, ModifyListener
 
       int colIndex = 0;
       for (TableColumn col : _table.getColumns()) {
-         if (colIndex++ < 2) col.pack();
-         else col.setWidth(750);
+         if (colIndex++ < 2) {
+            col.pack();
+         }
+         else {
+            col.setWidth(750);
+         }
       }
       _table.addSelectionListener(this);
       for (int i = 0; i < 10; i++) {
@@ -358,7 +366,9 @@ public class AnimationController implements SelectionListener, ModifyListener
             if (seq != null) {
                SequenceLibrary._sequences.remove(seq);
                _sequence.remove(seq._name);
-               if (_sequence.getItemCount() > 0) _sequence.select(0);
+               if (_sequence.getItemCount() > 0) {
+                  _sequence.select(0);
+               }
                loadSequenceIntoTable();
             }
          }
