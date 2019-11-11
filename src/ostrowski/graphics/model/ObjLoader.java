@@ -1,8 +1,10 @@
 package ostrowski.graphics.model;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.imageio.ImageIO;
 import ostrowski.graphics.GLView;
 
 /**
@@ -39,6 +41,28 @@ public class ObjLoader
          ObjData data = new ObjData(in);
          data.scale(widthFactor, widthFactor, lengthFactor);
          return new ObjModel(data, glView);
+      }
+   }
+   public static ObjData loadObj(String ref) throws IOException {
+      try (InputStream in = ObjLoader.class.getClassLoader().getResourceAsStream(ref))
+      {
+         if (in == null) {
+            throw new IOException("Unable to find: " + ref);
+         }
+
+         ObjData data = new ObjData(in);
+         //data.scale(scale/*heightFactor*/, scale/*widthFactor*/, scale/*lengthFactor*/);
+         return data;
+      }
+   }
+
+   public static BufferedImage loadImage(String ref) throws IOException {
+      try (InputStream in = ObjLoader.class.getClassLoader().getResourceAsStream(ref))
+      {
+         if (in == null) {
+            throw new IOException("Unable to find: " + ref);
+         }
+         return ImageIO.read(in);
       }
    }
 }

@@ -40,59 +40,61 @@ import ostrowski.util.SemaphoreAutoLocker;
 
 public class GLView implements Listener
 {
-   public  GLCanvas                     _GlCanvas;
-   private float                        _yRot                   = 0;
-   private float                        _xRot                   = 0;
-   private FloatBuffer                  _material;
+   private static float                       DEFAULT_FIELD_OF_VIEW   = 45.0f;
+   private static int                         BUTTON_PAN              = 1;      // left button
+   //private static int                         BUTTON_SELECT           = 1;    // left button
+   private static int                         BUTTON_DRAG             = 3;      // right button
+   private static final int                   MIN_ZOOM_POWER          = -5;
+   private static final int                   MAX_ZOOM_POWER          = 5;
+   private static final int                   MIN_ELEVATION_POWER     = -1;
+   private static final int                   MAX_ELEVATION_POWER     = 10;
+
+   public GLCanvas                            _GlCanvas;
+   private float                              _yRot                   = 0;
+   private float                              _xRot                   = 0;
+   private FloatBuffer                        _material;
    private final TextureLoader                _textureLoader          = new TextureLoader();
 
-   Semaphore _lock_models   = new Semaphore("GLView_models",   AnimationControllerSemaphore.CLASS_GLVIEW_MODELS);
-   Semaphore _lock_messages = new Semaphore("GLView_messages", AnimationControllerSemaphore.CLASS_GLVIEW_MESSAGES);
+   private final Semaphore                    _lock_models            = new Semaphore("GLView_models", AnimationControllerSemaphore.CLASS_GLVIEW_MODELS);
+   private final Semaphore                    _lock_messages          = new Semaphore("GLView_messages", AnimationControllerSemaphore.CLASS_GLVIEW_MESSAGES);
    private final ArrayList<TexturedObject>    _models                 = new ArrayList<>();
    private final ArrayList<Message>           _messages               = new ArrayList<>();
    private final ArrayList<ISelectionWatcher> _selectionWatchers      = new ArrayList<>();
 
-   private static float                 _DEFAULT_FIELD_OF_VIEW  = 45.0f;
-   private int                          _zoomPower              = 0;
-   private final int                    _zoomPowerMin           = -5;
-   private final int                    _zoomPowerMax           = 5;
-   private int                          _elevationPower         = 4;
-   private final int                    _elevationPowerMin      = -1;
-   private final int                    _elevationPowerMax      = 10;
-   private float                        _fieldOfViewYangle      = _DEFAULT_FIELD_OF_VIEW;
-   private final float                  _zNear                  = 0.5f;
-   private final float                  _zFar                   = 3500.0f;
-   private final float                  _heightScale            = 60f;
-   public Tuple3                        _cameraPosition         = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
-   public Tuple3                        _minOccupiedPosition    = new Tuple3(0f, 0f, 0f);
-   public Tuple3                        _maxOccupiedPosition    = new Tuple3(0f, 0f, 0f);
+   private int                                _zoomPower              = 0;
+   private int                                _elevationPower         = 4;
+   private float                              _fieldOfViewYangle      = DEFAULT_FIELD_OF_VIEW;
+   private final float                        _zNear                  = 0.5f;
+   private final float                        _zFar                   = 3500.0f;
+   private final float                        _heightScale            = 60f;
+   public Tuple3                              _cameraPosition         = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
+   public Tuple3                              _minOccupiedPosition    = new Tuple3(0f, 0f, 0f);
+   public Tuple3                              _maxOccupiedPosition    = new Tuple3(0f, 0f, 0f);
 
-   public BitmapFont                    _font;
-   private ButtonImage                  _zoomButtons;
-   private ButtonImage                  _elevationButtons;
-   private int                          _width;
-   private int                          _height;
-   private int                          _zoomLeft               = 100;
-   private int                          _zoomTop                = 100;
-   private int                          _elevationLeft;
-   private int                          _elevationTop;
-   private static int                   BUTTON_PAN              = 1;                                                        // left button
-   //private static int                   BUTTON_SELECT           = 1;                                                        // left button
-   private static int                   BUTTON_DRAG             = 3;                                                        // right button
-   private boolean                      _allowPan               = true;
-   private boolean                      _allowDrag              = true;
-   private int                          _buttonDown             = 0;
-   private Tuple3                       _mouseDownPosWorldCoordinates;
-   private Tuple3                       _initialMouseDownCameraPosition;
-   private Tuple2                       _mouseDownPosScreenCoordinates;
-   private Tuple2                       _initialMouseDownPosScreenCoordinates;
-   private TexturedObject               _texturedObjectClickedUpon;
-   private double                       _texturedObjectClickedUponAngleFromCenter;
-   private double                       _texturedObjectClickedUponNormalizedDistanceFromCenter;
-   public Texture                       _terrainTexture         = null;
-   public Texture                       _terrainTextureSelected = null;
+   public BitmapFont                          _font;
+   private ButtonImage                        _zoomButtons;
+   private ButtonImage                        _elevationButtons;
+   private int                                _width;
+   private int                                _height;
+   private float                              _aspectRatio;
+   private int                                _zoomLeft               = 100;
+   private int                                _zoomTop                = 100;
+   private int                                _elevationLeft;
+   private int                                _elevationTop;
+   private boolean                            _allowPan               = true;
+   private boolean                            _allowDrag              = true;
+   private int                                _buttonDown             = 0;
+   private Tuple3                             _mouseDownPosWorldCoordinates;
+   private Tuple3                             _initialMouseDownCameraPosition;
+   private Tuple2                             _mouseDownPosScreenCoordinates;
+   private Tuple2                             _initialMouseDownPosScreenCoordinates;
+   private TexturedObject                     _texturedObjectClickedUpon;
+   private double                             _texturedObjectClickedUponAngleFromCenter;
+   private double                             _texturedObjectClickedUponNormalizedDistanceFromCenter;
+   public Texture                             _terrainTexture         = null;
+   public Texture                             _terrainTextureSelected = null;
    private final ArrayList<TexturedObject>    _selectedObjects        = new ArrayList<>();
-   private boolean _watchMouseMove;
+   private boolean                            _watchMouseMove;
 
    public GLView(Composite parent, boolean withControls) {
       _material = BufferUtils.createFloatBuffer(4);
@@ -146,6 +148,11 @@ public class GLView implements Listener
          } catch (IOException e) {
          }
       }
+      // This ensures that all normals are normalized before used in computations.
+      // It may slow processing down, since it requires extra computations,
+      // but since this isn't a very demanding application, the speed reduction shouldn't be noticable.
+      GL11.glEnable(GL11.GL_NORMALIZE);
+
       incrementCameraAngle(0f, -10f);
    }
 
@@ -234,19 +241,9 @@ public class GLView implements Listener
       if (_zoomPower == 0) {
          return;
       }
-
-      _fieldOfViewYangle = _DEFAULT_FIELD_OF_VIEW;
-      _zoomPower = 0;
-      useAsCurrentCanvas();
-      GL11.glMatrixMode(GL11.GL_PROJECTION);
-      GL11.glLoadIdentity();
-      float fAspect = (((float) _width) / _height);
-      GLU.gluPerspective(_fieldOfViewYangle, fAspect, _zNear, _zFar);
-      GL11.glMatrixMode(GL11.GL_MODELVIEW);
-      GL11.glLoadIdentity();
-      drawScene(Display.getCurrent());
-
+      zoom(0, Display.getCurrent());
    }
+
    public void incrementCameraAngle(float x, float y) {
       _xRot += x;
       _yRot += y;
@@ -285,21 +282,21 @@ public class GLView implements Listener
     */
    public void defineLight(float xScale) {
 
-//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT, (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(1).put(1).put(1).put(1).flip()));
-//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(1).put(1).put(1).put(1).flip()));
-//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(10f*xScale).put(10f).put(5f).put(0).flip()));// set up the position of the light
+//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT,  BufferUtils.createFloatBuffer(4).put(1).put(1).put(1).put(1).flip());
+//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE,  BufferUtils.createFloatBuffer(4).put(1).put(1).put(1).put(1).flip());
+//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, BufferUtils.createFloatBuffer(4).put(10f*xScale).put(10f).put(5f).put(0).flip());// set up the position of the light
 //      GL11.glDisable(GL11.GL_LIGHT0);
 
       { // configure light sources:
-         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_AMBIENT,        (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(0.0f).put(0.2f).put(0.2f).put(0.2f).flip())); // Setup The Ambient Light
-         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_DIFFUSE,        (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(1.0f).put(1.0f).put(1.0f).put(1.0f).flip())); // Setup The Diffuse Light
-         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION,       (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(-200.0f).put(800.0f).put(1300.0f * xScale).put(0f).flip())); // Position The Light (w=0 => directional source, not a positional source)
+         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_AMBIENT,        BufferUtils.createFloatBuffer(4).put(0.0f).put(0.2f).put(0.2f).put(0.2f).flip()); // Setup The Ambient Light
+         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_DIFFUSE,        BufferUtils.createFloatBuffer(4).put(1.0f).put(1.0f).put(1.0f).put(1.0f).flip()); // Setup The Diffuse Light
+         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION,       BufferUtils.createFloatBuffer(4).put(-200.0f).put(800.0f).put(1300.0f * xScale).put(0f).flip()); // Position The Light (w=0 => directional source, not a positional source)
          GL11.glEnable(GL11.GL_LIGHT1);
       }
    }
    public void defineMaterial() {
       // setup the ambient light
-      GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, (FloatBuffer)(BufferUtils.createFloatBuffer(4).put(0.8f).put(0.8f).put(0.8f).put(0.8f).flip()));
+      GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, BufferUtils.createFloatBuffer(4).put(0.8f).put(0.8f).put(0.8f).put(0.8f).flip());
       GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
 
       GL11.glEnable(GL11.GL_LIGHTING);
@@ -434,16 +431,15 @@ public class GLView implements Listener
       }
       else {
          _zoomPower += zoomInOut;
-         _zoomPower = Math.max(_zoomPower, _zoomPowerMin);
-         _zoomPower = Math.min(_zoomPower, _zoomPowerMax);
+         _zoomPower = Math.max(_zoomPower, MIN_ZOOM_POWER);
+         _zoomPower = Math.min(_zoomPower, MAX_ZOOM_POWER);
       }
-      _fieldOfViewYangle = (float) (_DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, _zoomPower));
+      _fieldOfViewYangle = (float) (DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, _zoomPower));
 
       useAsCurrentCanvas();
       GL11.glMatrixMode(GL11.GL_PROJECTION);
       GL11.glLoadIdentity();
-      float fAspect = (((float) _width) / _height);
-      GLU.gluPerspective(_fieldOfViewYangle, fAspect, _zNear, _zFar);
+      GLU.gluPerspective(_fieldOfViewYangle, _aspectRatio, _zNear, _zFar);
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glLoadIdentity();
       drawScene(display);
@@ -491,8 +487,8 @@ public class GLView implements Listener
                   int dist2FromElevationUp = getDistSquared(event.x, event.y, (_elevationLeft + buttonRadius), (_elevationTop + buttonRadius));
                   if ((event.y < elevationCenterY) && (dist2FromElevationUp < (buttonRadius * buttonRadius))) {
                      // raise elevation
-                     if (++_elevationPower > _elevationPowerMax) {
-                        _elevationPower = _elevationPowerMax;
+                     if (++_elevationPower > MAX_ELEVATION_POWER) {
+                        _elevationPower = MAX_ELEVATION_POWER;
                      }
                   }
                   else {
@@ -500,8 +496,8 @@ public class GLView implements Listener
                                                                ((_elevationTop + _elevationButtons.getHeight()) - buttonRadius));
                      if ((event.y > elevationCenterY) && (dist2FromElevationDn < (buttonRadius * buttonRadius))) {
                         // lower elevation
-                        if (--_elevationPower < _elevationPowerMin) {
-                           _elevationPower = _elevationPowerMin;
+                        if (--_elevationPower < MIN_ELEVATION_POWER) {
+                           _elevationPower = MIN_ELEVATION_POWER;
                         }
                      }
                   }
@@ -631,13 +627,12 @@ public class GLView implements Listener
                   float dy = _mouseDownPosScreenCoordinates.getY() - screenLoc.getY();
                   _mouseDownPosScreenCoordinates = screenLoc;
                   _yRot -= (_fieldOfViewYangle * dy) / _height;
-                  float fAspect = (((float) _width) / _height);
-                  _xRot -= (_fieldOfViewYangle * fAspect * dx) / _width;
+                  _xRot -= (_fieldOfViewYangle * _aspectRatio * dx) / _width;
 
                   for (IGLViewListener listener : _listeners) {
                      listener.viewAngleChanged((float)((_xRot  * Math.PI) / 180), (float)((_yRot  * Math.PI) / 180));
                   }
-                  GLU.gluPerspective(_fieldOfViewYangle, fAspect, _zNear, _zFar);
+                  GLU.gluPerspective(_fieldOfViewYangle, _aspectRatio, _zNear, _zFar);
                   // pan complete
                   drawScene(event.display);
                   return;
@@ -682,7 +677,16 @@ public class GLView implements Listener
             return;
          }
          else if (event.type == SWT.MouseVerticalWheel) {
+            // record the old zoom level, then do the zoom
+            float fieldOfViewYangleBefore = _fieldOfViewYangle;
             zoom((event.count / 3), event.display);
+            // Now pan the view so the position under the mouse point wont seem to have moved at all
+            if (fieldOfViewYangleBefore != _fieldOfViewYangle) {
+               _yRot += ((_fieldOfViewYangle - fieldOfViewYangleBefore) * (event.y - (_height / 2.0))) / _height;
+               _xRot += ((_fieldOfViewYangle - fieldOfViewYangleBefore) * (event.x - (_width / 2.0))) / _width;
+               // pan complete, redraw the view
+               drawScene(event.display);
+            }
             return;
          }
          //else if (event.type == SWT.Paint) {
@@ -695,20 +699,20 @@ public class GLView implements Listener
    }
 
    public void setElevationPower(int elevationPower) {
-      _elevationPower = Math.min(Math.max(_elevationPowerMin, elevationPower), _elevationPowerMax);
+      _elevationPower = Math.min(Math.max(MIN_ELEVATION_POWER, elevationPower), MAX_ELEVATION_POWER);
       _cameraPosition = new Tuple3(_cameraPosition.getX(), getHeightAtCurrentElevationPower(), _cameraPosition.getZ());
    }
 
    public void setHeightScaleByApproximateHeightInInches(float desiredHeightInInchesIn) {
       float desiredHeightInInches = Math.min(desiredHeightInInchesIn, _zFar);
 
-      for (int scale = 0; scale < _elevationPowerMax; scale++) {
+      for (int scale = 0; scale < MAX_ELEVATION_POWER; scale++) {
          if (-getHeightInInchesForElevationPower(scale) > desiredHeightInInches) {
             setElevationPower(scale);
             return;
          }
       }
-      setElevationPower(_elevationPowerMax);
+      setElevationPower(MAX_ELEVATION_POWER);
    }
 
    private float getHeightInInchesForElevationPower(int elevationPower) {
@@ -963,14 +967,15 @@ public class GLView implements Listener
       if (_height == 0) {
          _height = 600;
       }
+      _aspectRatio = ((float) _width) / _height;
+
       if (!useAsCurrentCanvas()) {
          return;
       }
       GL11.glViewport(0, 0, _width, _height);
       GL11.glMatrixMode(GL11.GL_PROJECTION);
       GL11.glLoadIdentity();
-      float fAspect = (((float) _width) / _height);
-      GLU.gluPerspective(_fieldOfViewYangle, fAspect, _zNear, _zFar);
+      GLU.gluPerspective(_fieldOfViewYangle, _aspectRatio, _zNear, _zFar);
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glLoadIdentity();
    }

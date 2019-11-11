@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 /**
@@ -13,20 +14,21 @@ import java.util.StringTokenizer;
  * might be used for some other rendering engine in the future.
  *
  */
-public class ObjData
+public class ObjData implements Cloneable
 {
    /** The verticies that have been read from the file */
-   protected ArrayList<Tuple3> _verts     = new ArrayList<>();
+   protected final List<Tuple3> _verts     = new ArrayList<>();
    /** The faces data read from the file */
-   protected ArrayList<Face>   _faces     = new ArrayList<>();
+   protected final List<Face>   _faces     = new ArrayList<>();
 
    /** The normals that have been read from the file */
-   ArrayList<Tuple3> _normals = new ArrayList<>();
+   protected final List<Tuple3> _normals = new ArrayList<>();
+   Tuple3 _avePoint = null;
+
 
    public ObjData() {
    }
 
-   Tuple3 _avePoint = null;
    public Tuple3 getAveragePoint() {
       if (_avePoint == null) {
          _avePoint = new Tuple3(0,0,0);
@@ -61,7 +63,7 @@ public class ObjData
 
             // if we read a null line thats means on some systems
             // we've reached the end of the file, hence we want to
-            // to jump out of the loo
+            // to jump out of the loop
             if (line == null) {
                break;
             }
@@ -121,9 +123,35 @@ public class ObjData
       }
    }
 
+   public void move(Tuple3 offset) {
+      for (Tuple3 vert : _verts) {
+         vert.move(offset);
+      }
+//      for (int f=0 ; f<getFaceCount() ; f++) {
+//         getFace(f).move(offset);
+//      }
+   }
+
    public void move(double xOffset, double yOffset, double zOffset) {
       for (Tuple3 vert : _verts) {
          vert.move(xOffset, yOffset, zOffset);
+      }
+   }
+
+   public void rotate(float x, float y, float z) {
+      Matrix3x3 transform = Matrix3x3.getRotationalTransformation(x, y, z);
+      applyTransform(transform);
+   }
+
+   public void applyTransform(Matrix3x3 transform) {
+      for (Tuple3 vert : _verts) {
+         vert.applyTransformationInPlace(transform);
+      }
+      for (Tuple3 normal : _normals) {
+         normal.applyTransformationInPlace(transform);
+      }
+      for (Face face : _faces) {
+         face.applyTransformation(transform);
       }
    }
 
@@ -223,8 +251,7 @@ public class ObjData
       }
       Tuple3 line1 = face.getVertex(1).subtract(face.getVertex(0));
       Tuple3 line2 = face.getVertex(2).subtract(face.getVertex(1));
-      Tuple3 compNorm = line1.crossProduct(line2);
-      compNorm = compNorm.normalize();
+      Tuple3 compNorm = line1.crossProduct(line2).normalize();
       Tuple3 reportedNorm = face.getNormal(0).add(face.getNormal(1).add(face.getNormal(2)));
       if (face._vertexCount == 4) {
          reportedNorm = reportedNorm.add(face.getNormal(3));
@@ -244,4 +271,19 @@ public class ObjData
       }
    }
 
+
+   @Override
+   public ObjData clone() {
+      ObjData duplicate = new ObjData();
+      for (Tuple3 v : _verts) {
+         duplicate._verts.add(v.multiply(1f));
+      }
+      for (Face f : _faces) {
+         duplicate._faces.add(f.clone());
+      }
+      for (Tuple3 n : _normals) {
+         duplicate._normals.add(n.multiply(1f));
+      }
+      return duplicate;
+   }
 }

@@ -3,8 +3,8 @@ package ostrowski.graphics.objects3d;
 public class RangedValue implements Cloneable
 {
    private float _value;
-   private float _minValue;
-   private float _maxValue;
+   private final float _minValue;
+   private final float _maxValue;
 
    public RangedValue(float initialValue, float minValue, float maxValue) {
       _value = initialValue;
@@ -26,9 +26,9 @@ public class RangedValue implements Cloneable
       _value = value;
       validateRange();
    }
-   
+
    @Override
-   public Object clone() {
+   public RangedValue clone() {
       return new RangedValue(_value, _minValue, _maxValue);
    }
 }

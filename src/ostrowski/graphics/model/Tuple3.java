@@ -9,6 +9,8 @@ import java.nio.FloatBuffer;
  *
  */
 public class Tuple3 {
+    static int NEXT_ID = 0;
+    public int objId = NEXT_ID++;
 	/** The x element in this tuple */
 	protected float _x;
 	/** The y element in this tuple */
@@ -43,6 +45,11 @@ public class Tuple3 {
       _x += xOffset;
       _y += yOffset;
       _z += zOffset;
+   }
+   public void move(Tuple3 offset) {
+      _x = _x + offset.getX();
+      _y = _y + offset.getY();
+      _z = _z + offset.getZ();
    }
 
 	/**
@@ -114,54 +121,25 @@ public class Tuple3 {
       return "Tuple3:{" + getX() + ", " + getY() + ", " + getZ() + ")";
    }
 
+
    /* Rotates the 3-D point in space first about the x axis by the value of the first parameter,
     * then about the Y-axis by the value of the second parameter, and then about the Z-axis by the 3rd.
     * All parameters must be in Degrees.
     */
    public Tuple3 rotate(float x, float y, float z) {
-      float cx = (float) Math.cos(Math.toRadians(x));
-      float cy = (float) Math.cos(Math.toRadians(y));
-      float cz = (float) Math.cos(Math.toRadians(z));
-      float sx = (float) Math.sin(Math.toRadians(x));
-      float sy = (float) Math.sin(Math.toRadians(y));
-      float sz = (float) Math.sin(Math.toRadians(z));
-      Matrix3x3 rotX = new Matrix3x3(new Tuple3( 1f, 0f, 0f),
-                                     new Tuple3( 0f, cx,-sx),
-                                     new Tuple3( 0f, sx, cx));
-      Matrix3x3 rotY = new Matrix3x3(new Tuple3( cy, 0f, sy),
-                                     new Tuple3( 0f, 1f, 0f),
-                                     new Tuple3(-sy, 0f, cy));
-      Matrix3x3 rotZ = new Matrix3x3(new Tuple3( cz,-sz, 0f),
-                                     new Tuple3( sz, cz, 0f),
-                                     new Tuple3( 0f, 0f, 1f));
-      Matrix3x3 result = rotX.multiply(rotY).multiply(rotZ);
-      return result.multiply(this);
+      return this.applyTransformation(Matrix3x3.getRotationalTransformation(x, y, z));
    }
 
-   class Matrix3x3 {
-      Tuple3[] _row = new Tuple3[3];
-      public Matrix3x3(Tuple3 row0, Tuple3 row1, Tuple3 row2) {
-         _row[0] = row0;
-         _row[1] = row1;
-         _row[2] = row2;
-      }
-      public Matrix3x3 transpose() {
-         Tuple3 newRow0 = new Tuple3(_row[0]._x, _row[1]._x, _row[2]._x);
-         Tuple3 newRow1 = new Tuple3(_row[0]._y, _row[1]._y, _row[2]._y);
-         Tuple3 newRow2 = new Tuple3(_row[0]._z, _row[1]._z, _row[2]._z);
-         return new Matrix3x3(newRow0, newRow1, newRow2);
-      }
-
-      public Matrix3x3 multiply(Matrix3x3 m) {
-         Matrix3x3 mT = m.transpose();
-         Tuple3 newRow0 = new Tuple3(mT._row[0].dotProduct(_row[0]), mT._row[1].dotProduct(_row[0]), mT._row[2].dotProduct(_row[0]));
-         Tuple3 newRow1 = new Tuple3(mT._row[0].dotProduct(_row[1]), mT._row[1].dotProduct(_row[1]), mT._row[2].dotProduct(_row[1]));
-         Tuple3 newRow2 = new Tuple3(mT._row[0].dotProduct(_row[2]), mT._row[1].dotProduct(_row[2]), mT._row[2].dotProduct(_row[2]));
-         return new Matrix3x3(newRow0, newRow1, newRow2);
-      }
-
-      public Tuple3 multiply(Tuple3 t) {
-         return new Tuple3(t.dotProduct(_row[0]), t.dotProduct(_row[1]), t.dotProduct(_row[2]));
-      }
+   public Tuple3 applyTransformation(Matrix3x3 matrix) {
+      return matrix.multiply(this);
    }
+   public void applyTransformationInPlace(Matrix3x3 matrix) {
+      float x = dotProduct(matrix._row[0]);
+      float y = dotProduct(matrix._row[1]);
+      float z = dotProduct(matrix._row[2]);
+      _x = x;
+      _y = y;
+      _z = z;
+   }
+
 }

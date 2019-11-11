@@ -60,7 +60,7 @@ public class Torso extends BodyPart
       bindToTexture();
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glEnable(GL11.GL_NORMALIZE); // see http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
-      GL11.glPushMatrix();                     // save matrix before modelling.
+      GL11.glPushMatrix();              // save matrix before modeling.
       {
          //GL11.glTranslatef(0.0f, 10.0f, 0.0f);    // base matrix is (0, 10, 0); std rh axis (-z depth)
 

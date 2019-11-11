@@ -53,7 +53,7 @@ public class Tuple2 {
    public Tuple2 divide(float d) {
       return new Tuple2(getX() / d, getY() / d);
    }
-   public Tuple2 multiple(float d) {
+   public Tuple2 multiply(float d) {
       return new Tuple2(getX() * d, getY() * d);
    }
    
