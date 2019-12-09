@@ -211,7 +211,7 @@ public abstract class BodyPart extends TexturedObject
       if ((value == null) || !(value instanceof RangedValue)) {
          return new RangedValue(0,0,0);
       }
-      return (RangedValue) ((RangedValue) value).clone();
+      return ((RangedValue) value).clone();
    }
 
    public String   _name;
