@@ -737,7 +737,7 @@ public class GLView implements Listener
 
    //   private String convertMatrixToString(IntBuffer matrixBuffer) {
    //      int size = matrixBuffer.capacity();
-   //      ArrayList<String> list = new ArrayList<String>();
+   //      ArrayList<String> list = new ArrayList<>();
    //      for (int i=0 ; i<size ; i++) {
    //         list.add(String.valueOf(matrixBuffer.get(i)));
    //      }
@@ -745,7 +745,7 @@ public class GLView implements Listener
    //   }
    //   private String convertMatrixToString(FloatBuffer matrixBuffer) {
    //      int size = matrixBuffer.capacity();
-   //      ArrayList<String> list = new ArrayList<String>();
+   //      ArrayList<String> list = new ArrayList<>();
    //      for (int i=0 ; i<size ; i++) {
    //         list.add(String.valueOf(matrixBuffer.get(i)));
    //      }
@@ -1003,7 +1003,6 @@ public class GLView implements Listener
     * Leave the orthographic mode by restoring the state we store
     * in enterOrtho()
     *
-    * @see enterOrtho()
     */
    public void leaveOrtho() {
       // restore the state of the renderer

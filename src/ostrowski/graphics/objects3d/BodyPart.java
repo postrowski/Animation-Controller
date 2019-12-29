@@ -195,7 +195,7 @@ public abstract class BodyPart extends TexturedObject
       if ((value == null) || !(value instanceof Float)) {
          return 0;
       }
-      return ((Float)value).floatValue();
+      return (Float) value;
    }
    protected Tuple3 getValueByNameAsTuple3(String name) {
       HashMap<String, Object> values = getValuesByNameForClass();

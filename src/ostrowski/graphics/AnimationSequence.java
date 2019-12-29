@@ -23,8 +23,8 @@ public class AnimationSequence
       frameData.add("time=150^data=RightFingers;f:-20.0,t:0.0,s:0.0|LeftFingers;f:-20.0,t:0.0,s:0.0|Head;f:270.0,t:0.0,s:0.0|Core;t:0.0,h:0.0|LeftForeArm;f:75.0,t:90.0,s:0.0|LeftHand;f:90.0,t:0.0,s:0.0|RightToes;f:90.0,t:0.0,s:0.0|LeftFoot;f:48.0,t:0.0,s:0.0|RightForeArm;f:90.0,t:90.0,s:0.0|LeftLeg;f:195.0,t:0.0,s:0.0|RightHand;f:90.0,t:0.0,s:0.0|RightArm;f:280.0,t:0.0,s:10.0|RightLowerLeg;f:100.0,t:0.0,s:0.0|RightFoot;f:28.0,t:0.0,s:0.0|LeftArm;f:255.0,t:0.0,s:10.0|RightLeg;f:170.0,t:0.0,s:0.0|Torso;f:-90.0,t:0.0,s:0.0,h:0.0|LeftToes;f:90.0,t:0.0,s:0.0|LeftLowerLeg;f:125.0,t:0.0,s:0.0^feet=left");
 
       _frames.clear();
-      for (int i=0; i<frameData.size() ; i++) {
-         addFrame(new AnimationFrame(frameData.get(i)));
+      for (String frameDatum : frameData) {
+         addFrame(new AnimationFrame(frameDatum));
       }
    }
 
