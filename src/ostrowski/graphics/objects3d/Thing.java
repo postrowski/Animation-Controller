@@ -117,7 +117,7 @@ public class Thing extends TexturedObject
    public Thing(Dice dice, GLView glView, float sizeFactor, String colorSet) throws IOException {
       super(null/*texture*/, null/*selectedTexture*/, true/*invertNormals*/);
       loadObject(glView, dice.toString(),
-                 "res/dice/" + dice.toString() + ".obj",
+                 "res/dice/" + dice + ".obj",
                  "res/dice/diceMap" + colorSet + ".png",
                  sizeFactor * 50, sizeFactor * 50);
    }
