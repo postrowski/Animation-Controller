@@ -42,7 +42,7 @@ public abstract class BodyPart extends TexturedObject
          _valuesByNameByClassByRace.put("human", valuesByNameByClass);
 
          HashMap<String, Object> raceValue = new HashMap<>();
-         raceValue.put("tiltForward", Float.valueOf(-120));
+         raceValue.put("tiltForward", (float) -120);
          valuesByNameByClass.put(HumanBody.class, raceValue );
          valuesByNameByClass.put(Head.class, getHeadValues(270f/*neckTiltForward*/, 330/*maxNeckTiltForward*/, 225/*minNeckTiltForward*/,
                                                            0f/*neckTiltToLeft*/,45/*maxNeckTiltToLeft*/, -45/*minNeckTiltToLeft*/,
@@ -84,7 +84,7 @@ public abstract class BodyPart extends TexturedObject
          valuesByNameByClass = new HashMap<>();
          _valuesByNameByClassByRace.put("wolf", valuesByNameByClass);
          HashMap<String, Object> raceValue = new HashMap<>();
-         raceValue.put("tiltForward", Float.valueOf(0));
+         raceValue.put("tiltForward", (float) 0);
          valuesByNameByClass.put(HumanBody.class, raceValue );
          valuesByNameByClass.put(Head.class, getHeadValues(270f/*neckTiltForward*/, 330/*maxNeckTiltForward*/, 225/*minNeckTiltForward*/,
                                                            0f/*neckTiltToLeft*/,45/*maxNeckTiltToLeft*/, -45/*minNeckTiltToLeft*/,
@@ -138,19 +138,19 @@ public abstract class BodyPart extends TexturedObject
                                                        float rHead, float neckLength, float neckRadius, float neckHeight)
    {
       HashMap<String, Object> valuesByName = new HashMap<>();
-      valuesByName.put("neckTiltForward", Float.valueOf(neckTiltForward));
-      valuesByName.put("maxNeckTiltForward", Float.valueOf(maxNeckTiltForward));
-      valuesByName.put("minNeckTiltForward", Float.valueOf(minNeckTiltForward));
-      valuesByName.put("neckTiltToLeft", Float.valueOf(neckTiltToLeft));
-      valuesByName.put("maxNeckTiltToLeft", Float.valueOf(maxNeckTiltToLeft));
-      valuesByName.put("minNeckTiltToLeft", Float.valueOf(minNeckTiltToLeft));
-      valuesByName.put("neckTwist", Float.valueOf(neckTwist));
-      valuesByName.put("maxNeckTwist", Float.valueOf(maxNeckTwist));
-      valuesByName.put("minNeckTwist", Float.valueOf(minNeckTwist));
-      valuesByName.put("rHead", Float.valueOf(rHead));
-      valuesByName.put("neckLength", Float.valueOf(neckLength));
-      valuesByName.put("neckRadius", Float.valueOf(neckRadius));
-      valuesByName.put("neckHeight", Float.valueOf(neckHeight));
+      valuesByName.put("neckTiltForward", neckTiltForward);
+      valuesByName.put("maxNeckTiltForward", maxNeckTiltForward);
+      valuesByName.put("minNeckTiltForward", minNeckTiltForward);
+      valuesByName.put("neckTiltToLeft", neckTiltToLeft);
+      valuesByName.put("maxNeckTiltToLeft", maxNeckTiltToLeft);
+      valuesByName.put("minNeckTiltToLeft", minNeckTiltToLeft);
+      valuesByName.put("neckTwist", neckTwist);
+      valuesByName.put("maxNeckTwist", maxNeckTwist);
+      valuesByName.put("minNeckTwist", minNeckTwist);
+      valuesByName.put("rHead", rHead);
+      valuesByName.put("neckLength", neckLength);
+      valuesByName.put("neckRadius", neckRadius);
+      valuesByName.put("neckHeight", neckHeight);
       return valuesByName;
    }
 
@@ -176,14 +176,14 @@ public abstract class BodyPart extends TexturedObject
       valuesByName.put("spineSide", new RangedValue(spineSide, minSpineSide, maxSpineSide));
       valuesByName.put("twistRightShoulderUp", new RangedValue(twistRightShoulderUp, minTwistRightShoulderUp, maxTwistRightShoulderUp));
       valuesByName.put("spineBend", new RangedValue(spineBend, minSpineBend, maxSpineBend));
-      valuesByName.put("upperSpineLength", Float.valueOf(upperSpineLength));
-      valuesByName.put("shoulderWidth", Float.valueOf(shoulderWidth));
-      valuesByName.put("neckOffset", Float.valueOf(neckOffset));
+      valuesByName.put("upperSpineLength", upperSpineLength);
+      valuesByName.put("shoulderWidth", shoulderWidth);
+      valuesByName.put("neckOffset", neckOffset);
       return valuesByName;
    }
    private static HashMap<String, Object> setValues(int length, int frontRot, int maxFrontRot, int minFrontRot, int sideRot, int maxSideRot, int minSideRot, int twistCW, int maxTwistCW, int minTwistCW) {
       HashMap<String, Object> valuesByName = new HashMap<>();
-      valuesByName.put("_length", Float.valueOf(length));
+      valuesByName.put("_length", (float) length);
       valuesByName.put("frontRot", new RangedValue(frontRot, minFrontRot, maxFrontRot));
       valuesByName.put("sideRot", new RangedValue(sideRot, minSideRot, maxSideRot));
       valuesByName.put("twistCW", new RangedValue(twistCW, minTwistCW, maxTwistCW));

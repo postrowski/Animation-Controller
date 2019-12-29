@@ -310,16 +310,16 @@ public class ObjHex extends ObjData
       Tuple3 center = centerLocation();
 
       ArrayList<Float> radiuses = new ArrayList<>();
-      radiuses.add(Float.valueOf((bushDiameter * .75f) / 2.0f));
-      radiuses.add(Float.valueOf(bushDiameter / 2.0f));
+      radiuses.add((bushDiameter * .75f) / 2.0f);
+      radiuses.add(bushDiameter / 2.0f);
       if (height > 25) {
-         radiuses.add(Float.valueOf((bushDiameter * .85f) / 2.0f));
-         radiuses.add(Float.valueOf((bushDiameter * .65f) / 2.0f));
+         radiuses.add((bushDiameter * .85f) / 2.0f);
+         radiuses.add((bushDiameter * .65f) / 2.0f);
       }
       else {
-         radiuses.add(Float.valueOf((bushDiameter * .75f) / 2.0f));
+         radiuses.add((bushDiameter * .75f) / 2.0f);
       }
-      radiuses.add(Float.valueOf(0f));
+      radiuses.add(0f);
 
       for (int y=0 ; y<(radiuses.size()-1) ; y++) {
          double lowerDiameter = radiuses.get(y);

@@ -254,7 +254,7 @@ public class AnimationController implements SelectionListener, ModifyListener
       _table.addSelectionListener(this);
       for (int i = 0; i < 10; i++) {
          TableItem row = new TableItem(_table, SWT.NONE);
-         row.setData(Integer.valueOf(i));
+         row.setData(i);
          row.setText(new String[] { "", "", ""});
       }
    }
@@ -266,7 +266,7 @@ public class AnimationController implements SelectionListener, ModifyListener
          for (int i = 0; i < seq._frames.size(); i++) {
             AnimationFrame frame = seq._frames.get(i);
             TableItem row = new TableItem(_table, SWT.NONE);
-            row.setData(Integer.valueOf(i));
+            row.setData(i);
             row.setText(new String[] { String.valueOf(i), String.valueOf(frame._timeInMilliseconds), frame._data});
          }
          _table.select(0);
