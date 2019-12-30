@@ -2,6 +2,7 @@ package ostrowski.graphics.objects3d;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.SortedSet;
@@ -42,7 +43,7 @@ public class HumanBody extends BodyPart
 
    private HashMap<String, HashMap<String, Float>> _origPos                = null;
    private HashMap<String, HashMap<String, Float>> _nextPos                = null;
-   private final ArrayList<AnimationFrame>               _pendingAnimationFrames = new ArrayList<>();
+   private final List<AnimationFrame>               _pendingAnimationFrames = new ArrayList<>();
    private AnimationFrame                          _nextFrame              = null;
 
    private long                                    _origPosTime            = -1;
@@ -60,7 +61,7 @@ public class HumanBody extends BodyPart
       super("Body", null/*modelResourceName*/, false/*invertNormals*/, texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
       _pelvis = new Pelvis(texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
       _torso = new Torso(texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
-      ArrayList<TexturedObject> parts = new ArrayList<>();
+      List<TexturedObject> parts = new ArrayList<>();
       getParts(parts);
       for (TexturedObject part : parts) {
          _parts.put(part.getName(), part);
@@ -115,7 +116,7 @@ public class HumanBody extends BodyPart
    }
 
    @Override
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       // Bind to the texture for our model then render it.
       // This actually draws the geometry to the screen.
       // Must bind the texture BEFORE we call glBegin(...)
@@ -144,7 +145,7 @@ public class HumanBody extends BodyPart
       boolean drawJoints = false;
       if (drawJoints) {
          GL11.glColor4f(1f, 1f, 1f, 1f);
-         ArrayList<Tuple3> jointPoints = setHeightBasedOnLowestLimbPoint();
+         List<Tuple3> jointPoints = setHeightBasedOnLowestLimbPoint();
          for (Tuple3 jointPoint : jointPoints) {
             GL11.glTranslatef(jointPoint.getX(), jointPoint.getY(), jointPoint.getZ());
             BodyPart.drawSphere(2, 8, 8);
@@ -178,7 +179,7 @@ public class HumanBody extends BodyPart
       }
    }
 
-   public ArrayList<Message> _messages = new ArrayList<>();
+   public List<Message> _messages = new ArrayList<>();
    public int _repeatCount = 1;
 
    static String             delimiter = "|";
@@ -556,8 +557,8 @@ public class HumanBody extends BodyPart
       _pelvis.removeLeg(rightLeg);
    }
 
-   public ArrayList<Tuple3> setHeightBasedOnLowestLimbPoint() {
-      ArrayList<Tuple3> points = new ArrayList<>();
+   public List<Tuple3> setHeightBasedOnLowestLimbPoint() {
+      List<Tuple3> points = new ArrayList<>();
       for (int i = 0; i <= 4; i++) {
          points.add(_pelvis.getChildLocationIn3DReferenceFrame(true/*rightFoot*/, i));
          points.add(_pelvis.getChildLocationIn3DReferenceFrame(false/*rightFoot*/, i));
@@ -567,7 +568,7 @@ public class HumanBody extends BodyPart
       float minY = 0;
       boolean firstItem = true;
 
-      ArrayList<Tuple3> adjustedPoints = new ArrayList<>();
+      List<Tuple3> adjustedPoints = new ArrayList<>();
       for (Tuple3 point : points) {
          point = point.rotate(_tiltForward, 0f, 0f);
          point = point.rotate(0f, 0f, _tiltSide);
@@ -591,7 +592,7 @@ public class HumanBody extends BodyPart
    }
 
    @Override
-   public void getParts(ArrayList<TexturedObject> parts) {
+   public void getParts(List<TexturedObject> parts) {
       _pelvis.getParts(parts);
       _torso.getParts(parts);
    }

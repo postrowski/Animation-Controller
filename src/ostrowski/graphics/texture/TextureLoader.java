@@ -49,7 +49,6 @@ public class TextureLoader {
     /**
      * Create a new texture loader based on the game panel
      *
-     * @param gl The GL content in which the textures should be loaded
      */
     public TextureLoader() {
         glAlphaColorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),

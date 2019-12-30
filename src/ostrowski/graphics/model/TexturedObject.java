@@ -3,6 +3,7 @@ package ostrowski.graphics.model;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
@@ -15,7 +16,7 @@ public class TexturedObject
    private boolean            _selected        = false;
    public Texture             _texture         = null;
    public Texture             _selectedTexture = null;
-   public ArrayList<ObjModel> _models          = new ArrayList<>();
+   public List<ObjModel> _models          = new ArrayList<>();
    public float               _opacity         = 1f;
    public boolean             _invertNormals   = false;
 
@@ -39,7 +40,7 @@ public class TexturedObject
       if (model != null) _models.add(model);
    }
 
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       bindToTexture();
       GL11.glEnable(GL11.GL_BLEND);
       if (_opacity != 1f) GL11.glColor4f(1f, 1f, 1f, _opacity);

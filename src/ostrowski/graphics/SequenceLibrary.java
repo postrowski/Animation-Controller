@@ -15,7 +15,7 @@ import ostrowski.graphics.objects3d.HumanBody;
 
 public class SequenceLibrary
 {
-   static ArrayList<AnimationSequence>   _sequences = new ArrayList<>();
+   static List<AnimationSequence>   _sequences = new ArrayList<>();
    public static HashMap<String, String> _keyFrames = new HashMap<>();
 
    public static AnimationSequence getAnimationSequenceByName(String race, String name) {
@@ -27,7 +27,7 @@ public class SequenceLibrary
       return null;
    }
 
-   static public ArrayList<String> _availableRaces = new ArrayList<>();
+   static public List<String> _availableRaces = new ArrayList<>();
    static {
       _availableRaces.add("human");
       _availableRaces.add("minotaur");
@@ -50,7 +50,7 @@ public class SequenceLibrary
       }
    }
 
-   public ArrayList<AnimationFrame> getSequence(List<String> positiveRequirements, List<String> negativeRequirements) {
+   public List<AnimationFrame> getSequence(List<String> positiveRequirements, List<String> negativeRequirements) {
       return null;
    }
 

@@ -3,6 +3,7 @@ package ostrowski.graphics.objects3d;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
@@ -161,7 +162,7 @@ public class Thing extends TexturedObject
    }
 
    @Override
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       // must bind the texture BEFORE we call glBegin(...)
       bindToTexture();
       GL11.glPushMatrix();

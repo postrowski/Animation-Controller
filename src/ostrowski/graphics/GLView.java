@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
@@ -40,61 +41,61 @@ import ostrowski.util.SemaphoreAutoLocker;
 
 public class GLView implements Listener
 {
-   private static float                       DEFAULT_FIELD_OF_VIEW   = 45.0f;
-   private static int                         BUTTON_PAN              = 1;      // left button
-   //private static int                         BUTTON_SELECT           = 1;    // left button
-   private static int                         BUTTON_DRAG             = 3;      // right button
-   private static final int                   MIN_ZOOM_POWER          = -5;
-   private static final int                   MAX_ZOOM_POWER          = 5;
-   private static final int                   MIN_ELEVATION_POWER     = -1;
-   private static final int                   MAX_ELEVATION_POWER     = 10;
+   private static       float DEFAULT_FIELD_OF_VIEW = 45.0f;
+   private static       int   BUTTON_PAN            = 1;      // left button
+   //private static       int   BUTTON_SELECT         = 1;    // left button
+   private static       int   BUTTON_DRAG           = 3;      // right button
+   private static final int   MIN_ZOOM_POWER        = -5;
+   private static final int   MAX_ZOOM_POWER        = 5;
+   private static final int   MIN_ELEVATION_POWER   = -1;
+   private static final int   MAX_ELEVATION_POWER   = 10;
 
-   public GLCanvas                            _GlCanvas;
-   private float                              _yRot                   = 0;
-   private float                              _xRot                   = 0;
-   private FloatBuffer                        _material;
-   private final TextureLoader                _textureLoader          = new TextureLoader();
+   public        GLCanvas      _GlCanvas;
+   private       float         _yRot          = 0;
+   private       float         _xRot          = 0;
+   private       FloatBuffer   _material;
+   private final TextureLoader _textureLoader = new TextureLoader();
 
-   private final Semaphore                    _lock_models            = new Semaphore("GLView_models", AnimationControllerSemaphore.CLASS_GLVIEW_MODELS);
-   private final Semaphore                    _lock_messages          = new Semaphore("GLView_messages", AnimationControllerSemaphore.CLASS_GLVIEW_MESSAGES);
-   private final ArrayList<TexturedObject>    _models                 = new ArrayList<>();
-   private final ArrayList<Message>           _messages               = new ArrayList<>();
-   private final ArrayList<ISelectionWatcher> _selectionWatchers      = new ArrayList<>();
+   private final Semaphore               _lock_models       = new Semaphore("GLView_models", AnimationControllerSemaphore.CLASS_GLVIEW_MODELS);
+   private final Semaphore               _lock_messages     = new Semaphore("GLView_messages", AnimationControllerSemaphore.CLASS_GLVIEW_MESSAGES);
+   private final List<TexturedObject>    _models            = new ArrayList<>();
+   private final List<Message>           _messages          = new ArrayList<>();
+   private final List<ISelectionWatcher> _selectionWatchers = new ArrayList<>();
 
-   private int                                _zoomPower              = 0;
-   private int                                _elevationPower         = 4;
-   private float                              _fieldOfViewYangle      = DEFAULT_FIELD_OF_VIEW;
-   private final float                        _zNear                  = 0.5f;
-   private final float                        _zFar                   = 3500.0f;
-   private final float                        _heightScale            = 60f;
-   public Tuple3                              _cameraPosition         = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
-   public Tuple3                              _minOccupiedPosition    = new Tuple3(0f, 0f, 0f);
-   public Tuple3                              _maxOccupiedPosition    = new Tuple3(0f, 0f, 0f);
+   private       int    _zoomPower           = 0;
+   private       int    _elevationPower      = 4;
+   private       float  _fieldOfViewYangle   = DEFAULT_FIELD_OF_VIEW;
+   private final float  _zNear               = 0.5f;
+   private final float  _zFar                = 3500.0f;
+   private final float  _heightScale         = 60f;
+   public        Tuple3 _cameraPosition      = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
+   public        Tuple3 _minOccupiedPosition = new Tuple3(0f, 0f, 0f);
+   public        Tuple3 _maxOccupiedPosition = new Tuple3(0f, 0f, 0f);
 
-   public BitmapFont                          _font;
-   private ButtonImage                        _zoomButtons;
-   private ButtonImage                        _elevationButtons;
-   private int                                _width;
-   private int                                _height;
-   private float                              _aspectRatio;
-   private int                                _zoomLeft               = 100;
-   private int                                _zoomTop                = 100;
-   private int                                _elevationLeft;
-   private int                                _elevationTop;
-   private boolean                            _allowPan               = true;
-   private boolean                            _allowDrag              = true;
-   private int                                _buttonDown             = 0;
-   private Tuple3                             _mouseDownPosWorldCoordinates;
-   private Tuple3                             _initialMouseDownCameraPosition;
-   private Tuple2                             _mouseDownPosScreenCoordinates;
-   private Tuple2                             _initialMouseDownPosScreenCoordinates;
-   private TexturedObject                     _texturedObjectClickedUpon;
-   private double                             _texturedObjectClickedUponAngleFromCenter;
-   private double                             _texturedObjectClickedUponNormalizedDistanceFromCenter;
-   public Texture                             _terrainTexture         = null;
-   public Texture                             _terrainTextureSelected = null;
-   private final ArrayList<TexturedObject>    _selectedObjects        = new ArrayList<>();
-   private boolean                            _watchMouseMove;
+   public        BitmapFont                _font;
+   private       ButtonImage               _zoomButtons;
+   private       ButtonImage               _elevationButtons;
+   private       int                       _width;
+   private       int                       _height;
+   private       float                     _aspectRatio;
+   private       int                       _zoomLeft               = 100;
+   private       int                       _zoomTop                = 100;
+   private       int                       _elevationLeft;
+   private       int                       _elevationTop;
+   private       boolean                   _allowPan               = true;
+   private       boolean                   _allowDrag              = true;
+   private       int                       _buttonDown             = 0;
+   private       Tuple3                    _mouseDownPosWorldCoordinates;
+   private       Tuple3                    _initialMouseDownCameraPosition;
+   private       Tuple2                    _mouseDownPosScreenCoordinates;
+   private       Tuple2                    _initialMouseDownPosScreenCoordinates;
+   private       TexturedObject            _texturedObjectClickedUpon;
+   private       double                    _texturedObjectClickedUponAngleFromCenter;
+   private       double                    _texturedObjectClickedUponNormalizedDistanceFromCenter;
+   public        Texture                   _terrainTexture         = null;
+   public        Texture                   _terrainTextureSelected = null;
+   private final List<TexturedObject> _selectedObjects        = new ArrayList<>();
+   private       boolean                   _watchMouseMove;
 
    public GLView(Composite parent, boolean withControls) {
       _material = BufferUtils.createFloatBuffer(4);
@@ -322,7 +323,7 @@ public class GLView implements Listener
             return;
          }
 
-         ArrayList<Message> messages = new ArrayList<>();
+         List<Message> messages = new ArrayList<>();
 
          GL11.glLoadIdentity();
 
@@ -737,7 +738,7 @@ public class GLView implements Listener
 
    //   private String convertMatrixToString(IntBuffer matrixBuffer) {
    //      int size = matrixBuffer.capacity();
-   //      ArrayList<String> list = new ArrayList<>();
+   //      List<String> list = new ArrayList<>();
    //      for (int i=0 ; i<size ; i++) {
    //         list.add(String.valueOf(matrixBuffer.get(i)));
    //      }
@@ -745,14 +746,14 @@ public class GLView implements Listener
    //   }
    //   private String convertMatrixToString(FloatBuffer matrixBuffer) {
    //      int size = matrixBuffer.capacity();
-   //      ArrayList<String> list = new ArrayList<>();
+   //      List<String> list = new ArrayList<>();
    //      for (int i=0 ; i<size ; i++) {
    //         list.add(String.valueOf(matrixBuffer.get(i)));
    //      }
    //      return formatStringMatrix(list);
    //   }
    //
-   //   private String formatStringMatrix(ArrayList<String> list) {
+   //   private String formatStringMatrix(List<String> list) {
    //      int maxWidth = 0;
    //      for (String str : list)
    //         if (str.length() > maxWidth)
@@ -1050,7 +1051,7 @@ public class GLView implements Listener
       _watchMouseMove = watchMouseMove;
    }
 
-   ArrayList<IGLViewListener> _listeners = new ArrayList<>();
+   List<IGLViewListener> _listeners = new ArrayList<>();
    public void addViewListener(IGLViewListener listener) {
       _listeners.add(listener);
    }

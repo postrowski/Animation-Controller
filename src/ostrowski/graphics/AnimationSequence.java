@@ -6,13 +6,13 @@ import java.util.List;
 public class AnimationSequence
 {
    public String _name;
-   public ArrayList<AnimationFrame> _frames = new ArrayList<>();
+   public List<AnimationFrame> _frames = new ArrayList<>();
    public String _beginKeyFrame = "";
    public String _endKeyFrame = "";
 
    public void loadWalkingSequence() {
       _name = "Walking";
-      ArrayList<String> frameData = new ArrayList<>();
+      List<String> frameData = new ArrayList<>();
       frameData.add("time=250^data=RightFingers;f:-20.0,t:0.0,s:0.0|LeftFingers;f:-20.0,t:0.0,s:0.0|Head;f:270.0,t:0.0,s:0.0|Core;t:0.0,h:0.0|LeftForeArm;f:90.0,t:90.0,s:0.0|LeftHand;f:90.0,t:0.0,s:0.0|RightToes;f:90.0,t:0.0,s:0.0|LeftFoot;f:38.0,t:0.0,s:0.0|RightForeArm;f:80.0,t:90.0,s:0.0|LeftLeg;f:165.0,t:0.0,s:0.0|RightHand;f:90.0,t:0.0,s:0.0|RightArm;f:270.0,t:0.0,s:10.0|RightLowerLeg;f:90.0,t:0.0,s:0.0|RightFoot;f:28.0,t:0.0,s:0.0|LeftArm;f:270.0,t:0.0,s:10.0|RightLeg;f:180.0,t:0.0,s:0.0|Torso;f:-90.0,t:0.0,s:0.0,h:0.0|LeftToes;f:90.0,t:0.0,s:0.0|LeftLowerLeg;f:150.0,t:0.0,s:0.0^feet=right");
       frameData.add("time=250^data=RightFingers;f:-20.0,t:0.0,s:0.0|LeftFingers;f:-20.0,t:0.0,s:0.0|Head;f:270.0,t:0.0,s:0.0|Core;t:0.0,h:0.0|LeftForeArm;f:90.0,t:90.0,s:0.0|LeftHand;f:90.0,t:0.0,s:0.0|RightToes;f:90.0,t:0.0,s:0.0|LeftFoot;f:18.0,t:0.0,s:0.0|RightForeArm;f:65.0,t:90.0,s:0.0|LeftLeg;f:150.0,t:0.0,s:0.0|RightHand;f:90.0,t:0.0,s:0.0|RightArm;f:260.0,t:0.0,s:10.0|RightLowerLeg;f:90.0,t:0.0,s:0.0|RightFoot;f:18.0,t:0.0,s:0.0|LeftArm;f:280.0,t:0.0,s:10.0|RightLeg;f:195.0,t:0.0,s:0.0|Torso;f:-90.0,t:0.0,s:0.0,h:0.0|LeftToes;f:90.0,t:0.0,s:0.0|LeftLowerLeg;f:150.0,t:0.0,s:0.0^feet=right");
       frameData.add("time=250^data=RightFingers;f:-20.0,t:0.0,s:0.0|LeftFingers;f:-20.0,t:0.0,s:0.0|Head;f:270.0,t:0.0,s:0.0|Core;t:0.0,h:0.0|LeftForeArm;f:90.0,t:90.0,s:0.0|LeftHand;f:90.0,t:0.0,s:0.0|RightToes;f:90.0,t:0.0,s:0.0|LeftFoot;f:38.0,t:0.0,s:0.0|RightForeArm;f:65.0,t:90.0,s:0.0|LeftLeg;f:145.0,t:0.0,s:0.0|RightHand;f:90.0,t:0.0,s:0.0|RightArm;f:250.0,t:0.0,s:10.0|RightLowerLeg;f:100.0,t:0.0,s:0.0|RightFoot;f:18.0,t:0.0,s:0.0|LeftArm;f:285.0,t:0.0,s:10.0|RightLeg;f:200.0,t:0.0,s:0.0|Torso;f:-90.0,t:0.0,s:0.0,h:0.0|LeftToes;f:90.0,t:0.0,s:0.0|LeftLowerLeg;f:120.0,t:0.0,s:0.0^feet=right");
@@ -32,8 +32,8 @@ public class AnimationSequence
       _frames.add(frame);
    }
 
-   public ArrayList<String> _positiveAttributes = new ArrayList<>();
-   public ArrayList<String> _negativeAttributes = new ArrayList<>();
+   public List<String> _positiveAttributes = new ArrayList<>();
+   public List<String> _negativeAttributes = new ArrayList<>();
 
    public int score(List<String> positiveRequirement, int positiveWeight,
                     List<String> negativeRequirements, int negativeWeight) {

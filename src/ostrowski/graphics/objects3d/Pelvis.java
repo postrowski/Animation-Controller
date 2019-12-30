@@ -3,6 +3,7 @@ package ostrowski.graphics.objects3d;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 import org.lwjgl.opengl.GL11;
@@ -40,7 +41,7 @@ public class Pelvis extends BodyPart
    }
 
    @Override
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
 
       bindToTexture();
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -169,7 +170,7 @@ public class Pelvis extends BodyPart
    }
 
    @Override
-   public void getParts(ArrayList<TexturedObject> parts) {
+   public void getParts(List<TexturedObject> parts) {
       parts.add(this);
       if (_leftLeg != null) {
          _leftLeg.getParts(parts);

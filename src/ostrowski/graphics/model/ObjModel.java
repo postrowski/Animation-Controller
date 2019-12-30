@@ -3,6 +3,7 @@ package ostrowski.graphics.model;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -41,7 +42,7 @@ public class ObjModel
 
          // next we start producing the contents of the list
          GL11.glNewList(_listID, GL11.GL_COMPILE);
-         ArrayList<Message> messages = new ArrayList<>();
+         List<Message> messages = new ArrayList<>();
          renderWork(data, glView, messages);
          GL11.glEndList();
       }
@@ -50,7 +51,7 @@ public class ObjModel
       }
    }
 
-   protected void renderWork(ObjData data, GLView glView, ArrayList<Message> messages) {
+   protected void renderWork(ObjData data, GLView glView, List<Message> messages) {
       renderData(data);
       if (data instanceof ObjHex) {
          ObjHex hex = (ObjHex) data;
@@ -137,7 +138,7 @@ public class ObjModel
 
    public Tuple3 getScreenPosition3dContainingScreenPoint(Tuple2 invertedScreenLoc, FloatBuffer modelMatrix, FloatBuffer projMatrix, IntBuffer viewport) {
       Tuple3 lowestZCoordinates = null;
-      ArrayList<Tuple3> winPos3dList = new ArrayList<>();
+      List<Tuple3> winPos3dList = new ArrayList<>();
 
       float screenRightEdge = viewport.get(2);
       float screenBottomEdge = viewport.get(3);
@@ -271,7 +272,7 @@ public class ObjModel
    /**
     * Render the OBJ Model
     */
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       GL11.glTranslatef(_location.getX(), _location.getY(), _location.getZ());
 
       if (_useList) {

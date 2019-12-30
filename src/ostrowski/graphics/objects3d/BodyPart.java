@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 import org.lwjgl.BufferUtils;
@@ -223,7 +224,7 @@ public abstract class BodyPart extends TexturedObject
    protected float _widthFactor;
 
    Semaphore _lock_children = null;
-   protected ArrayList<TexturedObject> _children;
+   protected List<TexturedObject> _children;
 
    protected abstract Semaphore getChildLock();
    public BodyPart(String name, String modelResourceName, boolean invertNormals,
@@ -291,7 +292,7 @@ public abstract class BodyPart extends TexturedObject
 
    public abstract HashMap<String, Float> getAnglesMap();
 
-   public abstract void getParts(ArrayList<TexturedObject> parts);
+   public abstract void getParts(List<TexturedObject> parts);
 
    protected static void drawCylinder(float baseRadius, float topRadius, float height, int slices, int stacks) {
       Cylinder cylinder = new Cylinder();

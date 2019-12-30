@@ -56,7 +56,7 @@ public class ObjData implements Cloneable
       try (BufferedReader reader = new BufferedReader(new InputStreamReader(in)))
       {
          /** The texture coordinates that have been read from the file */
-         ArrayList<Tuple2> texCoords = new ArrayList<>();
+         List<Tuple2> texCoords = new ArrayList<>();
 
          while (reader.ready()) {
             String line = reader.readLine();
@@ -209,7 +209,7 @@ public class ObjData implements Cloneable
     * @return The face data extracted from the line
     * @throws IOException Indicates a failure to process the line
     */
-   protected Face readFace(String line, ArrayList<Tuple2> texCoords) throws IOException {
+   protected Face readFace(String line, List<Tuple2> texCoords) throws IOException {
       StringTokenizer points = new StringTokenizer(line, " ");
 
       points.nextToken();

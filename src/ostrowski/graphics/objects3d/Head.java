@@ -3,6 +3,7 @@ package ostrowski.graphics.objects3d;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 import org.lwjgl.opengl.GL11;
@@ -37,7 +38,7 @@ public class Head extends BodyPart
    private TexturedObject _beardObj = null;
    private TexturedObject _hairObj  = null;
 
-   //private ArrayList<ArrayList<Float>> _polygons;
+   //private List<ArrayList<Float>> _polygons;
    public Head(Texture texture, Texture selectedTexture, GLView glView, float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super("Head", "res/bodyparts/head.obj", false/*invertNormals*/, texture, selectedTexture, glView,
             ((2 * lengthFactor) + widthFactor) / 3f/*lengthFactor*/,
@@ -129,7 +130,7 @@ public class Head extends BodyPart
    }
 
    @Override
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       // neck joint
       GL11.glPushMatrix();
       {
@@ -196,7 +197,7 @@ public class Head extends BodyPart
    }
 
    @Override
-   public void getParts(ArrayList<TexturedObject> parts) {
+   public void getParts(List<TexturedObject> parts) {
       parts.add(this);
    }
 

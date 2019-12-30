@@ -3,6 +3,7 @@ package ostrowski.graphics.model;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import ostrowski.graphics.GLView;
@@ -38,7 +39,7 @@ public class ObjHex extends ObjData
    private static double PI_3rd = Math.PI / 3.0;
 
    // No need to protect access to _boundsVerts, its only modified in the ctor
-   private final ArrayList<Tuple3> _boundsVerts = new ArrayList<>();
+   private final List<Tuple3> _boundsVerts = new ArrayList<>();
    long _uniqueNumericKey = -1;
 
    public ObjHex(Tuple3 center, float edgeRadius, float boundsRadius, Terrain terrain, long uniqueNumericKey) {
@@ -55,7 +56,7 @@ public class ObjHex extends ObjData
       Random rnd = new Random(uniqueNumericKey); rnd.nextFloat();
       double textureAngle = rnd.nextFloat() * Math.PI * 2.0;
       double worldAngle = Math.PI / 2.0;
-      ArrayList<Tuple2> texCoords = new ArrayList<>();
+      List<Tuple2> texCoords = new ArrayList<>();
       for (int i = 0; i < 6; i++) {
          textureAngle += PI_3rd;
          worldAngle += PI_3rd;
@@ -309,7 +310,7 @@ public class ObjHex extends ObjData
       Tuple2 texture4 = texture3.add(-0.00f, 0.04f);
       Tuple3 center = centerLocation();
 
-      ArrayList<Float> radiuses = new ArrayList<>();
+      List<Float> radiuses = new ArrayList<>();
       radiuses.add((bushDiameter * .75f) / 2.0f);
       radiuses.add(bushDiameter / 2.0f);
       if (height > 25) {
@@ -345,9 +346,9 @@ public class ObjHex extends ObjData
    public Semaphore _lock_humans = new Semaphore("ObjHex_humans", AnimationControllerSemaphore.CLASS_OBJHEX_HUMANS);
    public Semaphore _lock_texturedObjects = new Semaphore("ObjHex_texturedObjects", AnimationControllerSemaphore.CLASS_OBJHEX_TEXTUREDOBJECTS);
    public Semaphore _lock_objects = new Semaphore("ObjHex_objects", AnimationControllerSemaphore.CLASS_OBJHEX_OBJECTS);
-   public ArrayList<HumanBody> _humans = new ArrayList<>();
-   public ArrayList<TexturedObject> _texturedObjects = new ArrayList<>();
-   public ArrayList<ObjData> _objects = new ArrayList<>();
+   public List<HumanBody> _humans = new ArrayList<>();
+   public List<TexturedObject> _texturedObjects = new ArrayList<>();
+   public List<ObjData> _objects = new ArrayList<>();
    private Message _message;
 
    public void addHuman(HumanBody human, int facing) {
@@ -381,7 +382,7 @@ public class ObjHex extends ObjData
    }
 
    // hexIndex is a 1-based index into the texture map for hexes
-   public ArrayList<Tuple2> getHexPointForTexture(int hexIndexIn, int textureRotation)
+   public List<Tuple2> getHexPointForTexture(int hexIndexIn, int textureRotation)
    {
       int hexIndex = hexIndexIn-1;
       int col = hexIndex % 8;
@@ -392,7 +393,7 @@ public class ObjHex extends ObjData
       if ((col %2) == 1) {
          offsetY += 32;
       }
-      ArrayList<Tuple2> results = new ArrayList<>();
+      List<Tuple2> results = new ArrayList<>();
       results.add(new Tuple2((20 + offsetX)/512.0f, (512.0f-(38 + offsetY))/512.0f)); // 10 o'clock position
       results.add(new Tuple2((55 + offsetX)/512.0f, (512.0f-(38 + offsetY))/512.0f)); //  2 o'clock position
       results.add(new Tuple2((71 + offsetX)/512.0f, (512.0f-(69 + offsetY))/512.0f)); //  3 o'clock position
@@ -416,7 +417,7 @@ public class ObjHex extends ObjData
       }
       TexturedObject floor = new TexturedObject(texture, texture, false/*invertNormals*/);
       floor._opacity = opacity;
-      ArrayList<Tuple2> texturePoints = getHexPointForTexture(color, 0/*textureRotation*/);
+      List<Tuple2> texturePoints = getHexPointForTexture(color, 0/*textureRotation*/);
       Tuple3 normal = new Tuple3(0, 0, 1);
       ObjData data = new ObjData();
       for (int i = 0; i < 6; i++) {
@@ -455,7 +456,7 @@ public class ObjHex extends ObjData
       Tuple2 texCenter = new Tuple2(CENTER_OFFSET_X + (col * COL_WIDTH),
                                     1.0f-(CENTER_OFFSET_Y + (row * ROW_HEIGHT)));
       Tuple3 normal = new Tuple3(0, 0, 1);
-      ArrayList<Tuple2> texCoords = new ArrayList<>();
+      List<Tuple2> texCoords = new ArrayList<>();
       Random rnd = new Random(_uniqueNumericKey); rnd.nextFloat();
       double textureAngle = rnd.nextFloat() * Math.PI * 2.0;
       for (int i = 0; i < 6; i++) {

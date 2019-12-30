@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
@@ -70,7 +71,7 @@ public abstract class BallSocketJoint extends BodyPart
    }
 
    @Override
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       GL11.glPushMatrix();
       {
          bindToTexture();
@@ -92,8 +93,8 @@ public abstract class BallSocketJoint extends BodyPart
          if (_children.size() > 0) {
             //if ((this instanceof Hand) && !this._leftSideOfBody) {
             if (this instanceof Hand) {
-               ArrayList<Thing> weapons = new ArrayList<>();
-               ArrayList<TexturedObject> objects = new ArrayList<>();
+               List<Thing> weapons = new ArrayList<>();
+               List<TexturedObject> objects = new ArrayList<>();
                WeaponPart weaponPart = null;
                synchronized(_children) {
                   try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
@@ -178,7 +179,7 @@ public abstract class BallSocketJoint extends BodyPart
    }
 
    public void removeHeldThings() {
-      ArrayList<TexturedObject> itemsToRemove = new ArrayList<>();
+      List<TexturedObject> itemsToRemove = new ArrayList<>();
       synchronized(_children) {
          try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
             for (TexturedObject child : _children) {
@@ -234,7 +235,7 @@ public abstract class BallSocketJoint extends BodyPart
    }
 
    @Override
-   public void getParts(ArrayList<TexturedObject> parts) {
+   public void getParts(List<TexturedObject> parts) {
       parts.add(this);
       synchronized(_children) {
          try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {

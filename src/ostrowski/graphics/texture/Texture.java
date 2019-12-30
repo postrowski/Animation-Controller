@@ -44,7 +44,6 @@ public class Texture {
     /**
      * Bind the specified GL context to a texture
      *
-     * @param gl The GL context to bind to
      */
     public void bind() {
       GL11.glBindTexture(target, textureID);

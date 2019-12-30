@@ -85,7 +85,7 @@ public class AnimationController implements SelectionListener, ModifyListener
 
       boolean first = true;
       _sequence.removeAll();
-      ArrayList<AnimationSequence> sequences = SequenceLibrary._sequences;
+      List<AnimationSequence> sequences = SequenceLibrary._sequences;
       for (AnimationSequence seq : sequences) {
          _sequence.add(seq._name);
          if (first) {

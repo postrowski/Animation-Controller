@@ -3,6 +3,7 @@ package ostrowski.graphics.objects3d;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 import org.lwjgl.opengl.GL11;
@@ -56,7 +57,7 @@ public class Torso extends BodyPart
 
 
    @Override
-   public void render(GLView glView, ArrayList<Message> messages) {
+   public void render(GLView glView, List<Message> messages) {
       bindToTexture();
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glEnable(GL11.GL_NORMALIZE); // see http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
@@ -152,7 +153,7 @@ public class Torso extends BodyPart
    }
 
    @Override
-   public void getParts(ArrayList<TexturedObject> parts) {
+   public void getParts(List<TexturedObject> parts) {
       parts.add(this);
       if (_leftArm != null) {
          _leftArm.getParts(parts);

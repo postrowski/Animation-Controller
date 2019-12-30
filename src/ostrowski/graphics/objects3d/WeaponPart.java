@@ -1,6 +1,6 @@
 package ostrowski.graphics.objects3d;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 import ostrowski.graphics.GLView;
@@ -31,7 +31,7 @@ public class WeaponPart extends BodyPart
    }
 
    @Override
-   public void getParts(ArrayList<TexturedObject> parts) {
+   public void getParts(List<TexturedObject> parts) {
       parts.add(this);
    }
 
