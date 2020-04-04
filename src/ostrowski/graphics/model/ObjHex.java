@@ -343,12 +343,12 @@ public class ObjHex extends ObjData
       }
    }
 
-   public Semaphore _lock_humans = new Semaphore("ObjHex_humans", AnimationControllerSemaphore.CLASS_OBJHEX_HUMANS);
-   public Semaphore _lock_texturedObjects = new Semaphore("ObjHex_texturedObjects", AnimationControllerSemaphore.CLASS_OBJHEX_TEXTUREDOBJECTS);
-   public Semaphore _lock_objects = new Semaphore("ObjHex_objects", AnimationControllerSemaphore.CLASS_OBJHEX_OBJECTS);
-   public List<HumanBody> _humans = new ArrayList<>();
-   public List<TexturedObject> _texturedObjects = new ArrayList<>();
-   public List<ObjData> _objects = new ArrayList<>();
+   public final Semaphore _lock_humans = new Semaphore("ObjHex_humans", AnimationControllerSemaphore.CLASS_OBJHEX_HUMANS);
+   public final Semaphore _lock_texturedObjects = new Semaphore("ObjHex_texturedObjects", AnimationControllerSemaphore.CLASS_OBJHEX_TEXTUREDOBJECTS);
+   public final Semaphore _lock_objects = new Semaphore("ObjHex_objects", AnimationControllerSemaphore.CLASS_OBJHEX_OBJECTS);
+   public final List<HumanBody> _humans = new ArrayList<>();
+   public final List<TexturedObject> _texturedObjects = new ArrayList<>();
+   public final List<ObjData> _objects = new ArrayList<>();
    private Message _message;
 
    public void addHuman(HumanBody human, int facing) {
