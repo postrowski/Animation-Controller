@@ -24,7 +24,9 @@
           <root url="jar://C:/Program Files/Java/swt/swt.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://C:/Program Files/Java/swt/src.zip!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
