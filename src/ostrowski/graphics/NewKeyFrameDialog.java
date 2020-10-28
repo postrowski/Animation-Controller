@@ -38,24 +38,16 @@ public class NewKeyFrameDialog
       name.setText(_name);
       name.setBounds(120, 15, 100, 20);
 
-      Listener listener = new Listener() {
-         @Override
-         public void handleEvent(Event event) {
-            if (event.widget == buttonOK) {
-               createOK = true;
-            } else {
-               createOK = false;
-            }
-            dialog.close();
+      Listener listener = event -> {
+         if (event.widget == buttonOK) {
+            createOK = true;
+         } else {
+            createOK = false;
          }
+         dialog.close();
       };
 
-      ModifyListener modifyListener = new ModifyListener() {
-         @Override
-         public void modifyText(ModifyEvent e) {
-            _name = name.getText();
-         }
-      };
+      ModifyListener modifyListener = e -> _name = name.getText();
       name.addModifyListener(modifyListener );
       buttonOK.addListener(SWT.Selection, listener);
       buttonCancel.addListener(SWT.Selection, listener);

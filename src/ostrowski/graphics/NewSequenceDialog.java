@@ -73,39 +73,21 @@ public class NewSequenceDialog
       }
 
 
-      Listener listener = new Listener() {
-         @Override
-         public void handleEvent(Event event) {
-            if (event.widget == buttonOK) {
-               createOK = true;
-            } else {
-               createOK = false;
-            }
-            dialog.close();
+      Listener listener = event -> {
+         if (event.widget == buttonOK) {
+            createOK = true;
+         } else {
+            createOK = false;
          }
+         dialog.close();
       };
 
-      name.addModifyListener(new ModifyListener() {
-         @Override
-         public void modifyText(ModifyEvent e) {
-            _name = name.getText();
-         }
-      });
+      name.addModifyListener(e -> _name = name.getText());
       buttonOK.addListener(SWT.Selection, listener);
       buttonCancel.addListener(SWT.Selection, listener);
 
-      _sequenceStart.addModifyListener(new ModifyListener() {
-         @Override
-         public void modifyText(ModifyEvent e) {
-            _sequenceStartName = _sequenceStart.getText();
-         }
-      });
-      _sequenceEnd.addModifyListener(new ModifyListener() {
-         @Override
-         public void modifyText(ModifyEvent e) {
-            _sequenceEndName = _sequenceEnd.getText();
-         }
-      });
+      _sequenceStart.addModifyListener(e -> _sequenceStartName = _sequenceStart.getText());
+      _sequenceEnd.addModifyListener(e -> _sequenceEndName = _sequenceEnd.getText());
    }
 
    public String open() {
