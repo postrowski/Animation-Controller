@@ -11,9 +11,9 @@ import ostrowski.util.Semaphore;
 
 public class WeaponPart extends BodyPart
 {
-   public Float _lengthOffset;
-   public Float _frontRot;
-   public Float _twistRot;
+   public Float lengthOffset;
+   public Float frontRot;
+   public Float twistRot;
 
    public WeaponPart(String name, String modelResourceName, boolean invertNormals,
                      Texture texture, Texture selectedTexture,
@@ -24,9 +24,9 @@ public class WeaponPart extends BodyPart
    @Override
    public HashMap<String, Float> getAnglesMap() {
       HashMap<String, Float> anglesMap = new HashMap<>();
-      anglesMap.put("f", _frontRot);
-      anglesMap.put("t", _twistRot);
-      anglesMap.put("l", _lengthOffset);
+      anglesMap.put("f", frontRot);
+      anglesMap.put("t", twistRot);
+      anglesMap.put("l", lengthOffset);
       return anglesMap;
    }
 
@@ -38,11 +38,11 @@ public class WeaponPart extends BodyPart
    @Override
    public void setAnglesFromMap(HashMap<String, Float> angleMap) {
       if (angleMap.containsKey("l"))
-         _lengthOffset = angleMap.get("l");
+         lengthOffset = angleMap.get("l");
       if (angleMap.containsKey("f"))
-         _frontRot = angleMap.get("f");
+         frontRot = angleMap.get("f");
       if (angleMap.containsKey("t"))
-         _twistRot = angleMap.get("t");
+         twistRot = angleMap.get("t");
    }
 
    @Override

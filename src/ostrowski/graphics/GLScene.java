@@ -21,12 +21,12 @@ public class GLScene implements Runnable
    public static boolean USING_SCALING_FOR_LEFT_SIDE = true;
    static boolean              initialized = false;
 
-   public FrameController     _frameController;
-   public AnimationController _animationController;
+   public FrameController     frameController;
+   public AnimationController animationController;
 
-   static Display              _display;
+   static Display display;
 
-   private static Shell        SHELL;
+   private static Shell shell;
 
    public GLScene(Composite parent) {
       FillLayout fillLayout = new FillLayout();
@@ -46,7 +46,7 @@ public class GLScene implements Runnable
       topSash.SASH_WIDTH = 4;
       topSash.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GREEN));
 
-      _frameController = new FrameController(topSash, this);
+      frameController = new FrameController(topSash, this);
 
       SashForm bottomSash = new SashForm(mainSash, SWT.HORIZONTAL);
       data = new GridData(SWT.FILL, SWT.FILL, true/*grabExcessHorizontalSpace*/, true/*grabExcessVerticalSpace*/);
@@ -54,37 +54,37 @@ public class GLScene implements Runnable
       bottomSash.SASH_WIDTH = 4;
       bottomSash.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GREEN));
 
-      _animationController = new AnimationController(bottomSash, this);
+      animationController = new AnimationController(bottomSash, this);
 
       Composite topComp = new Composite(topSash, SWT.NONE);
       topComp.setLayout(new FillLayout());
 
-      _frameController.createUI(topComp);
-      _animationController.createUI(bottomSash);
+      frameController.createUI(topComp);
+      animationController.createUI(bottomSash);
 
-      _frameController.setCameraPosition(0f, _frameController.getCameraPosition().getY(), -120f);
-      _animationController.setCameraPosition(0f, _frameController.getCameraPosition().getY(), -250f);
+      frameController.setCameraPosition(0f, frameController.getCameraPosition().getY(), -120f);
+      animationController.setCameraPosition(0f, frameController.getCameraPosition().getY(), -250f);
 
-      _frameController.incrementCameraAngle(0f, -15f);
-      _animationController.incrementCameraAngle(0f, -10f);
+      frameController.incrementCameraAngle(0f, -15f);
+      animationController.incrementCameraAngle(0f, -10f);
    }
 
    public static void main(String[] args) {
-      _display = new Display();
-      SHELL = new Shell(_display);
-      GLScene scene = new GLScene(SHELL);
+      display = new Display();
+      shell = new Shell(display);
+      GLScene scene = new GLScene(shell);
 
-      SHELL.setText("SWT/LWJGL Human modeler");
-      SHELL.setSize(600, 1000);
-      SHELL.setLocation(1200, 100);
-      SHELL.open();
+      shell.setText("SWT/LWJGL Human modeler");
+      shell.setSize(600, 1000);
+      shell.setLocation(1200, 100);
+      shell.open();
 
-      _display.asyncExec(scene);
+      display.asyncExec(scene);
 
-      while (!SHELL.isDisposed()) {
-         if (!_display.readAndDispatch()) _display.sleep();
+      while (!shell.isDisposed()) {
+         if (!display.readAndDispatch()) display.sleep();
       }
-      _display.dispose();
+      display.dispose();
    }
 
    static public boolean pauseanimation = false;
@@ -99,18 +99,18 @@ public class GLScene implements Runnable
             e.printStackTrace();
          }
 
-         _frameController.drawScene(_display);
-         _animationController.drawScene(_display);
+         frameController.drawScene(display);
+         animationController.drawScene(display);
       }
-      if (!SHELL.isDisposed()) _display.asyncExec(this);
+      if (!shell.isDisposed()) display.asyncExec(this);
    }
 
    public void setStaticModelData(AnimationFrame frame) {
-      _frameController.setModelData(frame);
+      frameController.setModelData(frame);
    }
 
    public void setCurrentFrameModelData(AnimationFrame frame) {
-      _animationController.setCurrentFrameModelData(frame);
+      animationController.setCurrentFrameModelData(frame);
    }
 
 }

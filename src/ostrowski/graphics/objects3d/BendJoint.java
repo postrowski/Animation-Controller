@@ -14,6 +14,6 @@ public abstract class BendJoint extends TwistBendJoint
    }
 
    public void setAngles(float front) {
-      _frontRot.setValue(front);
+      frontRot.setValue(front);
    }
 }

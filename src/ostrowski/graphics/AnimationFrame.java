@@ -4,10 +4,10 @@ import java.util.StringTokenizer;
 
 public class AnimationFrame
 {
-   public String _data;
-   public long _timeInMilliseconds;
-   public boolean _leftFootPlanted = false;
-   public boolean _rightFootPlanted = false;
+   public String  data;
+   public long    timeInMilliseconds;
+   public boolean leftFootPlanted  = false;
+   public boolean rightFootPlanted = false;
 
    public AnimationFrame() {
    }
@@ -23,21 +23,21 @@ public class AnimationFrame
                String value = st2.nextToken();
                try {
                   if (name.equalsIgnoreCase("time")) {
-                     _timeInMilliseconds = Long.parseLong(value);
+                     timeInMilliseconds = Long.parseLong(value);
                   }
                   else if (name.equalsIgnoreCase("data")) {
-                     _data = value;
+                     data = value;
                   }
                   else if (name.equalsIgnoreCase("feet")) {
                      if (value.equalsIgnoreCase("both")) {
-                        _leftFootPlanted = true;
-                        _rightFootPlanted = true;
+                        leftFootPlanted = true;
+                        rightFootPlanted = true;
                      }
                      else if (value.equalsIgnoreCase("left")) {
-                        _leftFootPlanted = true;
+                        leftFootPlanted = true;
                      }
                      else if (value.equalsIgnoreCase("right")) {
-                        _rightFootPlanted = true;
+                        rightFootPlanted = true;
                      }
                   }
                }
@@ -49,19 +49,19 @@ public class AnimationFrame
    }
 
    public AnimationFrame(AnimationFrame frame) {
-      _data = frame._data;
-      _leftFootPlanted = frame._leftFootPlanted;
-      _rightFootPlanted = frame._rightFootPlanted;
-      _timeInMilliseconds = frame._timeInMilliseconds;
+      data = frame.data;
+      leftFootPlanted = frame.leftFootPlanted;
+      rightFootPlanted = frame.rightFootPlanted;
+      timeInMilliseconds = frame.timeInMilliseconds;
    }
 
    public String SerializeToString() {
       StringBuilder sb = new StringBuilder();
-      sb.append("time=").append(_timeInMilliseconds);
-      sb.append("^data=").append(_data);
+      sb.append("time=").append(timeInMilliseconds);
+      sb.append("^data=").append(data);
       sb.append("^feet=");
-      if (_leftFootPlanted) {
-         if (_rightFootPlanted) {
+      if (leftFootPlanted) {
+         if (rightFootPlanted) {
             sb.append("both");
          }
          else {
@@ -69,7 +69,7 @@ public class AnimationFrame
          }
       }
       else
-         if (_rightFootPlanted) {
+         if (rightFootPlanted) {
             sb.append("right");
          }
          else {

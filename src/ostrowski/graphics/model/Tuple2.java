@@ -8,9 +8,9 @@ package ostrowski.graphics.model;
  */
 public class Tuple2 {
 	/** The x element in this tuple */
-	private float _x;
+	private float x;
 	/** The y element in this tuple */
-	private float _y;
+	private float y;
 	
 	/**
 	 * Create a new Tuple of 2 elements
@@ -19,8 +19,8 @@ public class Tuple2 {
 	 * @param y The Y element value
 	 */
 	public Tuple2(float x,float y) {
-		this._x = x;
-		this._y = y;
+		this.x = x;
+		this.y = y;
 	}
 	
 	/**
@@ -29,7 +29,7 @@ public class Tuple2 {
 	 * @return The X element value from this tuple
 	 */
 	public float getX() {
-		return _x;
+		return x;
 	}
 
 	/**
@@ -38,7 +38,7 @@ public class Tuple2 {
 	 * @return The Y element value from this tuple
 	 */
 	public float getY() {
-		return _y;
+		return y;
 	}
 
    public Tuple2 add(float dx, float dy) {

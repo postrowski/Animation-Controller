@@ -2,33 +2,33 @@ package ostrowski.graphics.objects3d;
 
 public class RangedValue implements Cloneable
 {
-   private float _value;
-   private final float _minValue;
-   private final float _maxValue;
+   private float       value;
+   private final float minValue;
+   private final float maxValue;
 
    public RangedValue(float initialValue, float minValue, float maxValue) {
-      _value = initialValue;
-      _minValue = minValue;
-      _maxValue = maxValue;
+      value = initialValue;
+      this.minValue = minValue;
+      this.maxValue = maxValue;
    }
    public void validateRange() {
-      if (_value < _minValue) {
-         _value = _minValue;
+      if (value < minValue) {
+         value = minValue;
       }
-      else if (_value > _maxValue) {
-         _value = _maxValue;
+      else if (value > maxValue) {
+         value = maxValue;
       }
    }
    public float getValue() {
-      return _value;
+      return value;
    }
    public void setValue(float value) {
-      _value = value;
+      this.value = value;
       validateRange();
    }
 
    @Override
    public RangedValue clone() {
-      return new RangedValue(_value, _minValue, _maxValue);
+      return new RangedValue(value, minValue, maxValue);
    }
 }

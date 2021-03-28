@@ -15,24 +15,24 @@ import ostrowski.graphics.objects3d.HumanBody;
 
 public class SequenceLibrary
 {
-   static List<AnimationSequence>   _sequences = new ArrayList<>();
-   public static HashMap<String, String> _keyFrames = new HashMap<>();
+   static List<AnimationSequence>        sequences = new ArrayList<>();
+   public static HashMap<String, String> keyFrames = new HashMap<>();
 
    public static AnimationSequence getAnimationSequenceByName(String race, String name) {
-      for (AnimationSequence seq : _sequences) {
-         if (seq._name.equalsIgnoreCase(name)) {
+      for (AnimationSequence seq : sequences) {
+         if (seq.name.equalsIgnoreCase(name)) {
             return seq;
          }
       }
       return null;
    }
 
-   static public List<String> _availableRaces = new ArrayList<>();
+   static public List<String> availableRaces = new ArrayList<>();
    static {
-      _availableRaces.add("human");
-      _availableRaces.add("minotaur");
-      _availableRaces.add("cyclops");
-      _availableRaces.add("wolf");
+      availableRaces.add("human");
+      availableRaces.add("minotaur");
+      availableRaces.add("cyclops");
+      availableRaces.add("wolf");
       try (InputStream in = ObjLoader.class.getClassLoader().getResourceAsStream("res/SequenceLibrary.anim")) {
          if (in != null) {
             try (InputStreamReader reader = new InputStreamReader(in)) {
@@ -57,7 +57,7 @@ public class SequenceLibrary
    public AnimationSequence getFrame(List<String> positiveRequirements, List<String> negativeRequirements, String race) {
       int bestScore = -1000;
       AnimationSequence bestFrame = null;
-      for (AnimationSequence seq : _sequences) {
+      for (AnimationSequence seq : sequences) {
          int frameScore = seq.score(positiveRequirements, 1, negativeRequirements, -10);
          if (frameScore > bestScore) {
             bestScore = frameScore;
@@ -70,9 +70,9 @@ public class SequenceLibrary
    private static void loadSequencesFromFile(BufferedReader input, String racename) {
       String lineData = "";
       AnimationSequence seq = null;
-      _sequences.clear();
-      //      _animationController.clearSequences();
-      //      _humanController.clearKeyFrames();
+      sequences.clear();
+      //      animationController.clearSequences();
+      //      humanController.clearKeyFrames();
       try {
          while (true) {
             lineData = input.readLine();
@@ -84,22 +84,22 @@ public class SequenceLibrary
             }
             if (lineData.startsWith("sequence:")) {
                if (seq != null) {
-                  _sequences.add(seq);
+                  sequences.add(seq);
                }
                seq = new AnimationSequence();
-               seq._name = lineData.substring("sequence:".length());
+               seq.name = lineData.substring("sequence:".length());
             }
             else if (lineData.startsWith("keyStart:")) {
-               seq._beginKeyFrame = lineData.substring("keyStart:".length());
+               seq.beginKeyFrame = lineData.substring("keyStart:".length());
             }
             else if (lineData.startsWith("keyEnd:")) {
-               seq._endKeyFrame = lineData.substring("keyEnd:".length());
+               seq.endKeyFrame = lineData.substring("keyEnd:".length());
             }
             else if (lineData.startsWith("positiveAssociation:")) {
-               seq._positiveAttributes.add(lineData.substring("positiveAssociation:".length()));
+               seq.positiveAttributes.add(lineData.substring("positiveAssociation:".length()));
             }
             else if (lineData.startsWith("negativeAssociation:")) {
-               seq._positiveAttributes.add(lineData.substring("negativeAssociation:".length()));
+               seq.positiveAttributes.add(lineData.substring("negativeAssociation:".length()));
             }
             else if (lineData.startsWith("keyFrame:")) {
                String keyFrameNameData = lineData.substring("keyFrame:".length());
@@ -109,7 +109,7 @@ public class SequenceLibrary
                   String data = keyFrameNameData.substring(index + 1);
                   HumanBody human = new HumanBody(null, null, 1.0f/*lengthFactor*/, 1.0f/*widthFactor*/, racename, true/*isMale*/);
                   human.setAngles(data);
-                  _keyFrames.put(name, human.getAngles());
+                  keyFrames.put(name, human.getAngles());
                }
             }
             else {
@@ -121,7 +121,7 @@ public class SequenceLibrary
          // file is done
       }
       if (seq != null) {
-         _sequences.add(seq);
+         sequences.add(seq);
       }
    }
 
@@ -138,23 +138,23 @@ public class SequenceLibrary
          if (file.exists() && file.canWrite()) {
             try (FileWriter fileWriter = new FileWriter(file)) {
 
-               for (String key : _keyFrames.keySet()) {
-                  String keyFrameData = _keyFrames.get(key);
+               for (String key : keyFrames.keySet()) {
+                  String keyFrameData = keyFrames.get(key);
                   fileWriter.append("keyFrame:").append(key).append("^").append(keyFrameData).append("\n");
                }
-               for (AnimationSequence sequence : _sequences) {
+               for (AnimationSequence sequence : sequences) {
                   fileWriter.append("\n");
-                  fileWriter.append("sequence:").append(sequence._name).append("\n");
-                  fileWriter.append("keyStart:").append(sequence._beginKeyFrame).append("\n");
-                  fileWriter.append("keyEnd:").append(sequence._endKeyFrame).append("\n");
-                  for (String assoc : sequence._positiveAttributes) {
+                  fileWriter.append("sequence:").append(sequence.name).append("\n");
+                  fileWriter.append("keyStart:").append(sequence.beginKeyFrame).append("\n");
+                  fileWriter.append("keyEnd:").append(sequence.endKeyFrame).append("\n");
+                  for (String assoc : sequence.positiveAttributes) {
                      fileWriter.append("positiveAssociation:").append(assoc).append("\n");
                   }
-                  for (String assoc : sequence._negativeAttributes) {
+                  for (String assoc : sequence.negativeAttributes) {
                      fileWriter.append("negativeAssociation:").append(assoc).append("\n");
                   }
-                  for (int i = 0; i < sequence._frames.size(); i++) {
-                     fileWriter.append(sequence._frames.get(i).SerializeToString()).append("\n");
+                  for (int i = 0; i < sequence.frames.size(); i++) {
+                     fileWriter.append(sequence.frames.get(i).SerializeToString()).append("\n");
                   }
                }
             }

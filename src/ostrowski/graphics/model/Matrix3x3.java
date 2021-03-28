@@ -5,29 +5,29 @@ public class Matrix3x3 {
                                                                    new Tuple3(0,1,0),
                                                                    new Tuple3(0,0,1)); }
 
-   Tuple3[] _row = new Tuple3[3];
+   Tuple3[] row = new Tuple3[3];
    public Matrix3x3(Tuple3 row0, Tuple3 row1, Tuple3 row2) {
-      _row[0] = row0;
-      _row[1] = row1;
-      _row[2] = row2;
+      row[0] = row0;
+      row[1] = row1;
+      row[2] = row2;
    }
    public Matrix3x3 transpose() {
-      Tuple3 newRow0 = new Tuple3(_row[0]._x, _row[1]._x, _row[2]._x);
-      Tuple3 newRow1 = new Tuple3(_row[0]._y, _row[1]._y, _row[2]._y);
-      Tuple3 newRow2 = new Tuple3(_row[0]._z, _row[1]._z, _row[2]._z);
+      Tuple3 newRow0 = new Tuple3(row[0].x, row[1].x, row[2].x);
+      Tuple3 newRow1 = new Tuple3(row[0].y, row[1].y, row[2].y);
+      Tuple3 newRow2 = new Tuple3(row[0].z, row[1].z, row[2].z);
       return new Matrix3x3(newRow0, newRow1, newRow2);
    }
 
    public Matrix3x3 multiply(Matrix3x3 m) {
       Matrix3x3 mT = m.transpose();
-      Tuple3 newRow0 = new Tuple3(mT._row[0].dotProduct(_row[0]), mT._row[1].dotProduct(_row[0]), mT._row[2].dotProduct(_row[0]));
-      Tuple3 newRow1 = new Tuple3(mT._row[0].dotProduct(_row[1]), mT._row[1].dotProduct(_row[1]), mT._row[2].dotProduct(_row[1]));
-      Tuple3 newRow2 = new Tuple3(mT._row[0].dotProduct(_row[2]), mT._row[1].dotProduct(_row[2]), mT._row[2].dotProduct(_row[2]));
+      Tuple3 newRow0 = new Tuple3(mT.row[0].dotProduct(row[0]), mT.row[1].dotProduct(row[0]), mT.row[2].dotProduct(row[0]));
+      Tuple3 newRow1 = new Tuple3(mT.row[0].dotProduct(row[1]), mT.row[1].dotProduct(row[1]), mT.row[2].dotProduct(row[1]));
+      Tuple3 newRow2 = new Tuple3(mT.row[0].dotProduct(row[2]), mT.row[1].dotProduct(row[2]), mT.row[2].dotProduct(row[2]));
       return new Matrix3x3(newRow0, newRow1, newRow2);
    }
 
    public Tuple3 multiply(Tuple3 t) {
-      return new Tuple3(t.dotProduct(_row[0]), t.dotProduct(_row[1]), t.dotProduct(_row[2]));
+      return new Tuple3(t.dotProduct(row[0]), t.dotProduct(row[1]), t.dotProduct(row[2]));
    }
 
    /* Computes a rotation matrix to rotates a point in space first about the x axis by the value of the first parameter,

@@ -50,67 +50,68 @@ public class GLView implements Listener
    private static final int   MIN_ELEVATION_POWER   = -1;
    private static final int   MAX_ELEVATION_POWER   = 10;
 
-   public        GLCanvas      _GlCanvas;
-   private       float         _yRot          = 0;
-   private       float         _xRot          = 0;
-   private       FloatBuffer   _material;
-   private final TextureLoader _textureLoader = new TextureLoader();
+   public        GLCanvas      glCanvas;
+   private       float         yRot          = 0;
+   private       float         xRot          = 0;
+   private       FloatBuffer   material;
+   private final TextureLoader textureLoader = new TextureLoader();
 
-   private final Semaphore               _lock_models       = new Semaphore("GLView_models", AnimationControllerSemaphore.CLASS_GLVIEW_MODELS);
-   private final Semaphore               _lock_messages     = new Semaphore("GLView_messages", AnimationControllerSemaphore.CLASS_GLVIEW_MESSAGES);
-   private final List<TexturedObject>    _models            = new ArrayList<>();
-   private final List<Message>           _messages          = new ArrayList<>();
-   private final List<ISelectionWatcher> _selectionWatchers = new ArrayList<>();
+   private final Semaphore               lock_models       = new Semaphore("GLView_models", AnimationControllerSemaphore.CLASS_GLVIEW_MODELS);
+   private final Semaphore               lock_messages     = new Semaphore("GLView_messages", AnimationControllerSemaphore.CLASS_GLVIEW_MESSAGES);
+   private final List<TexturedObject>    models            = new ArrayList<>();
+   private final List<Message>           messages          = new ArrayList<>();
+   private final List<ISelectionWatcher> selectionWatchers = new ArrayList<>();
 
-   private       int    _zoomPower           = 0;
-   private       int    _elevationPower      = 4;
-   private       float  _fieldOfViewYangle   = DEFAULT_FIELD_OF_VIEW;
-   private final float  _zNear               = 0.5f;
-   private final float  _zFar                = 3500.0f;
-   private final float  _heightScale         = 60f;
-   public        Tuple3 _cameraPosition      = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
-   public        Tuple3 _minOccupiedPosition = new Tuple3(0f, 0f, 0f);
-   public        Tuple3 _maxOccupiedPosition = new Tuple3(0f, 0f, 0f);
+   private       int    zoomPower           = 0;
+   private       int    elevationPower      = 4;
+   private       float  fieldOfViewYangle   = DEFAULT_FIELD_OF_VIEW;
+   private final float  zNear               = 0.5f;
+   private final float  zFar                = 3500.0f;
+   private final float  heightScale         = 60f;
+   public        Tuple3 cameraPosition      = new Tuple3(0f, getHeightAtCurrentElevationPower(), -120f);
+   public        Tuple3 minOccupiedPosition = new Tuple3(0f, 0f, 0f);
+   public        Tuple3 maxOccupiedPosition = new Tuple3(0f, 0f, 0f);
 
-   public        BitmapFont                _font;
-   private       ButtonImage               _zoomButtons;
-   private       ButtonImage               _elevationButtons;
-   private       int                       _width;
-   private       int                       _height;
-   private       float                     _aspectRatio;
-   private       int                       _zoomLeft               = 100;
-   private       int                       _zoomTop                = 100;
-   private       int                       _elevationLeft;
-   private       int                       _elevationTop;
-   private       boolean                   _allowPan               = true;
-   private       boolean                   _allowDrag              = true;
-   private       int                       _buttonDown             = 0;
-   private       Tuple3                    _mouseDownPosWorldCoordinates;
-   private       Tuple3                    _initialMouseDownCameraPosition;
-   private       Tuple2                    _mouseDownPosScreenCoordinates;
-   private       Tuple2                    _initialMouseDownPosScreenCoordinates;
-   private       TexturedObject            _texturedObjectClickedUpon;
-   private       double                    _texturedObjectClickedUponAngleFromCenter;
-   private       double                    _texturedObjectClickedUponNormalizedDistanceFromCenter;
-   public        Texture                   _terrainTexture         = null;
-   public        Texture                   _terrainTextureSelected = null;
-   private final List<TexturedObject> _selectedObjects        = new ArrayList<>();
-   private       boolean                   _watchMouseMove;
+   public        BitmapFont           font;
+   private       ButtonImage          zoomButtons;
+   private       ButtonImage          elevationButtons;
+   private       int                  width;
+   private       int                  height;
+   private       float                aspectRatio;
+   private       int                  zoomLeft               = 100;
+   private       int                  zoomTop                = 100;
+   private       int                  elevationLeft;
+   private       int                  elevationTop;
+   private       boolean              allowPan               = true;
+   private       boolean              allowDrag              = true;
+   private       int                  buttonDown             = 0;
+   private       Tuple3               mouseDownPosWorldCoordinates;
+   private       Tuple3               initialMouseDownCameraPosition;
+   private       Tuple2               mouseDownPosScreenCoordinates;
+   private       Tuple2               initialMouseDownPosScreenCoordinates;
+   private       TexturedObject       texturedObjectClickedUpon;
+   private       double               texturedObjectClickedUponAngleFromCenter;
+   private       double               texturedObjectClickedUponNormalizedDistanceFromCenter;
+   public        Texture              terrainTexture         = null;
+   public        Texture              terrainTextureSelected = null;
+   private final List<TexturedObject> selectedObjects        = new ArrayList<>();
+   private       boolean              watchMouseMove;
+   List<IGLViewListener> listeners = new ArrayList<>();
 
    public GLView(Composite parent, boolean withControls) {
-      _material = BufferUtils.createFloatBuffer(4);
+      material = BufferUtils.createFloatBuffer(4);
 
       GLData data = new GLData();
       data.doubleBuffer = true;
-      _GlCanvas = new GLCanvas(parent, SWT.NONE, data);
-      _GlCanvas.addListener(SWT.Resize, this);
+      glCanvas = new GLCanvas(parent, SWT.NONE, data);
+      glCanvas.addListener(SWT.Resize, this);
       //_GlCanvas.addListener(SWT.Paint, this);
-      _GlCanvas.addListener(SWT.MouseDown, this);
-      _GlCanvas.addListener(SWT.MouseUp, this);
-      _GlCanvas.addListener(SWT.MouseMove, this);
-      _GlCanvas.addListener(SWT.MouseDoubleClick, this);
-      _GlCanvas.addListener(SWT.MouseExit, this);
-      _GlCanvas.addListener(SWT.MouseVerticalWheel, this);
+      glCanvas.addListener(SWT.MouseDown, this);
+      glCanvas.addListener(SWT.MouseUp, this);
+      glCanvas.addListener(SWT.MouseMove, this);
+      glCanvas.addListener(SWT.MouseDoubleClick, this);
+      glCanvas.addListener(SWT.MouseExit, this);
+      glCanvas.addListener(SWT.MouseVerticalWheel, this);
 
       if (!useAsCurrentCanvas()) {
          return;
@@ -137,15 +138,15 @@ public class GLView implements Listener
 
       if (withControls) {
          try {
-            _terrainTexture = _textureLoader.getTexture("res/texture_terrain.png");
-            _terrainTextureSelected = _textureLoader.getTexture("res/texture_terrain_selected.png");
+            terrainTexture = textureLoader.getTexture("res/texture_terrain.png");
+            terrainTextureSelected = textureLoader.getTexture("res/texture_terrain_selected.png");
 
-            Texture fontTexture = _textureLoader.getTexture("res/font.png");
-            _font = new BitmapFont(fontTexture, 32 /*characterWidth*/, 32/*characterHeight*/);
+            Texture fontTexture = textureLoader.getTexture("res/font.png");
+            font = new BitmapFont(fontTexture, 32 /*characterWidth*/, 32/*characterHeight*/);
 
-            Texture controlsTexture = _textureLoader.getTexture("res/viewControls.png");
-            _zoomButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 0, 123, 49));
-            _elevationButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 50, 49, 91));
+            Texture controlsTexture = textureLoader.getTexture("res/viewControls.png");
+            zoomButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 0, 123, 49));
+            elevationButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 50, 49, 91));
          } catch (IOException e) {
          }
       }
@@ -158,11 +159,11 @@ public class GLView implements Listener
    }
 
    public void allowPan(boolean allow) {
-      _allowPan = allow;
+      allowPan = allow;
    }
 
    public void allowDrag(boolean allow) {
-      _allowDrag = allow;
+      allowDrag = allow;
    }
 
    public void addDefaultMap() {
@@ -195,14 +196,14 @@ public class GLView implements Listener
                                 long uniqueNumericKey, String label) {
       Tuple3 center = getHexLocation(x , y, z);
 
-      TexturedObject texturedObj = new TexturedObject(_terrainTexture, _terrainTextureSelected, false/*invertNormals*/);
-      texturedObj._relatedObject = "x:" + x + ", y:" + y;
-      texturedObj._opacity = opacity;
+      TexturedObject texturedObj = new TexturedObject(terrainTexture, terrainTextureSelected, false/*invertNormals*/);
+      texturedObj.relatedObject = "x:" + x + ", y:" + y;
+      texturedObj.opacity = opacity;
       ObjHex data = new ObjHex(center, edgeRadius, boundsRadius, terrain, uniqueNumericKey);
       if (label != null) {
          Message message = new Message();
-         message._text = label;
-         message._centerText = true;
+         message.text = label;
+         message.centerText = true;
 
          data.setMessage(message);
       }
@@ -212,65 +213,65 @@ public class GLView implements Listener
    }
 
    public void clearModels() {
-      synchronized (_models) {
-         _lock_models.check();
-         _models.clear();
+      synchronized (models) {
+         lock_models.check();
+         models.clear();
       }
    }
 
    public boolean removeObject(TexturedObject obj) {
-      synchronized (_models) {
-         _lock_models.check();
-         return _models.remove(obj);
+      synchronized (models) {
+         lock_models.check();
+         return models.remove(obj);
       }
    }
 
    //   public TexturedObject getObjectByRelatedObject(Object obj) {
-   //      for (TexturedObject model : _models) {
-   //         if (model._relatedObject == obj)
+   //      for (TexturedObject model : models) {
+   //         if (model.relatedObject == obj)
    //            return model;
    //      }
    //      return null;
    //   }
    public Canvas getCanvas() {
-      return _GlCanvas;
+      return glCanvas;
    }
 
    public void setCameraAngle(float x, float y) {
-      _xRot = x;
-      _yRot = y;
-      if (_zoomPower == 0) {
+      xRot = x;
+      yRot = y;
+      if (zoomPower == 0) {
          return;
       }
       zoom(0, Display.getCurrent());
    }
 
    public void incrementCameraAngle(float x, float y) {
-      _xRot += x;
-      _yRot += y;
-      //      Tuple3 dist3 = _cameraPosition.subtract(_cameraPosition);
+      xRot += x;
+      yRot += y;
+      //      Tuple3 dist3 = cameraPosition.subtract.cameraPosition);
       //      double dist = Math.sqrt(dist3.getX() * dist3.getX() + dist3.getY() * dist3.getY() + dist3.getZ() * dist3.getZ());
       //      double flatRadius = Math.sin(Math.toRadians(_yRot)) * dist;
       //      float Z = -(float) (Math.cos(Math.toRadians(_yRot)) * dist);
       //      float X = (float) (Math.sin(Math.toRadians(_xRot)) * flatRadius);
       //      float Y = (float) (Math.cos(Math.toRadians(_xRot)) * flatRadius);
-      //      _cameraPosition = new Tuple3(X, Y, Z);
+      //      cameraPosition = new Tuple3(X, Y, Z);
    }
 
    public boolean useAsCurrentCanvas() {
-      if (_GlCanvas == null) {
+      if (glCanvas == null) {
          return false;
       }
       String threadName = Thread.currentThread().getName();
       if (!threadName.equals("main")) {
          return false;
       }
-      if (_GlCanvas.isDisposed()) {
+      if (glCanvas.isDisposed()) {
          return false;
       }
-      _GlCanvas.setCurrent();
+      glCanvas.setCurrent();
       try {
-         GLContext.useContext(_GlCanvas);
+         GLContext.useContext(glCanvas);
          return true;
       } catch (LWJGLException e) {
          e.printStackTrace();
@@ -306,19 +307,19 @@ public class GLView implements Listener
       GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT_AND_DIFFUSE);
       GL11.glPolygonMode(GL11.GL_FRONT_FACE, GL11.GL_AMBIENT_AND_DIFFUSE);
 
-      _material.put(1).put(1).put(1).put(1);
-      _material.flip();
-      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE, _material);
-      GL11.glMaterial(GL11.GL_BACK, GL11.GL_DIFFUSE, _material);
+      material.put(1).put(1).put(1).put(1);
+      material.flip();
+      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE, material);
+      GL11.glMaterial(GL11.GL_BACK, GL11.GL_DIFFUSE, material);
    }
 
    public void setCameraPosition(float x, float y, float z) {
-      _cameraPosition = new Tuple3(x, y, z);
+      cameraPosition = new Tuple3(x, y, z);
    }
 
    public void drawScene(Display display) {
 
-      if (!_GlCanvas.isDisposed()) {
+      if (!glCanvas.isDisposed()) {
          if (!useAsCurrentCanvas()) {
             return;
          }
@@ -346,18 +347,18 @@ public class GLView implements Listener
             //humanModel.ModelShape();
 
             // This actually draws the geometry to the screen
-            synchronized (_models) {
-               try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_models)) {
-                  for (TexturedObject texturedObj : _models) {
+            synchronized (models) {
+               try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_models)) {
+                  for (TexturedObject texturedObj : models) {
                      if (texturedObj instanceof Thing) {
-                        if (((Thing)texturedObj)._invertNormals) {
+                        if (((Thing)texturedObj).invertNormals) {
                            GL11.glScalef(-1f, 1f, 1f);
                            defineLight(-1f);
                         }
                      }
                      texturedObj.render(this, messages);
                      if (texturedObj instanceof Thing) {
-                        if (((Thing)texturedObj)._invertNormals) {
+                        if (((Thing)texturedObj).invertNormals) {
                            GL11.glScalef(-1f, 1f, 1f);
                            defineLight(1f);
                         }
@@ -375,35 +376,35 @@ public class GLView implements Listener
 
          enterOrtho();
 
-         if (_zoomButtons != null) {
-            _zoomButtons.drawImage(_zoomLeft, _zoomTop);
+         if (zoomButtons != null) {
+            zoomButtons.drawImage(zoomLeft, zoomTop);
          }
-         if (_elevationButtons != null) {
-            _elevationButtons.drawImage(_elevationLeft, _elevationTop);
+         if (elevationButtons != null) {
+            elevationButtons.drawImage(elevationLeft, elevationTop);
          }
 
-         if (_font != null) {
+         if (font != null) {
             // object-defined messages:
             for (Message message : messages) {
                // Window reference frame uses y=0 at the bottom.
                // When we draw text, y=0 is at the top, so subtract y from the window height.
-               if ((message._text != null) && (message._text.length() > 0) && message._visible) {
-                  if (message._zLoc <= 0) {
-                     BitmapFont font = _font;
-                     font.drawString(message._font, message._colorRGB, message._opacity, message._text,
-                                     message._xLoc, _GlCanvas.getBounds().height - message._yLoc, message._centerText/*centerOnCoords*/);
+               if ((message.text != null) && (message.text.length() > 0) && message.visible) {
+                  if (message.zLoc <= 0) {
+                     BitmapFont font = this.font;
+                     font.drawString(message.font, message.colorRGB, message.opacity, message.text,
+                                     message.xLoc, glCanvas.getBounds().height - message.yLoc, message.centerText/*centerOnCoords*/);
                   }
                }
             }
             // View-defined messages:
-            for (Message message : _messages) {
+            for (Message message : this.messages) {
                // Window reference frame uses y=0 at the bottom.
                // When we draw text, y=0 is at the top, so subtract y from the window height.
-               if ((message._text != null) && (message._text.length() > 0) && message._visible) {
-                  if (message._zLoc <= 0) {
-                     BitmapFont font = _font;
-                     font.drawString(message._font, message._colorRGB, message._opacity, message._text,
-                                     message._xLoc, _GlCanvas.getBounds().height - message._yLoc, message._centerText/*centerOnCoords*/);
+               if ((message.text != null) && (message.text.length() > 0) && message.visible) {
+                  if (message.zLoc <= 0) {
+                     BitmapFont font = this.font;
+                     font.drawString(message.font, message.colorRGB, message.opacity, message.text,
+                                     message.xLoc, glCanvas.getBounds().height - message.yLoc, message.centerText/*centerOnCoords*/);
                   }
                }
             }
@@ -414,33 +415,33 @@ public class GLView implements Listener
 
          leaveOrtho();
 
-         _GlCanvas.swapBuffers();
+         glCanvas.swapBuffers();
       }
    }
 
    void setupView() {
-      GL11.glRotatef(-_yRot, 1.0f, 0.0f, 0.0f); // rotation affects matrix state
-      GL11.glRotatef(-_xRot, 0.0f, 1.0f, 0.0f); // do the "camera rotation"
+      GL11.glRotatef(-yRot, 1.0f, 0.0f, 0.0f); // rotation affects matrix state
+      GL11.glRotatef(-xRot, 0.0f, 1.0f, 0.0f); // do the "camera rotation"
 
       // position the camera:
-      GL11.glTranslatef(_cameraPosition.getX(), _cameraPosition.getY(), _cameraPosition.getZ()); // translate into perspective view
+      GL11.glTranslatef(cameraPosition.getX(), cameraPosition.getY(), cameraPosition.getZ()); // translate into perspective view
    }
 
    private void zoom(int zoomInOut, Display display) {
       if (zoomInOut == 0) {
-         _zoomPower = 0;
+         zoomPower = 0;
       }
       else {
-         _zoomPower += zoomInOut;
-         _zoomPower = Math.max(_zoomPower, MIN_ZOOM_POWER);
-         _zoomPower = Math.min(_zoomPower, MAX_ZOOM_POWER);
+         zoomPower += zoomInOut;
+         zoomPower = Math.max(zoomPower, MIN_ZOOM_POWER);
+         zoomPower = Math.min(zoomPower, MAX_ZOOM_POWER);
       }
-      _fieldOfViewYangle = (float) (DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, _zoomPower));
+      fieldOfViewYangle = (float) (DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, zoomPower));
 
       useAsCurrentCanvas();
       GL11.glMatrixMode(GL11.GL_PROJECTION);
       GL11.glLoadIdentity();
-      GLU.gluPerspective(_fieldOfViewYangle, _aspectRatio, _zNear, _zFar);
+      GLU.gluPerspective(fieldOfViewYangle, aspectRatio, zNear, zFar);
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glLoadIdentity();
       drawScene(display);
@@ -456,25 +457,25 @@ public class GLView implements Listener
          }
          else if (event.type == SWT.MouseDown) {
             useAsCurrentCanvas();
-            _buttonDown = event.button;
-            if (_buttonDown == 1) {
-               if ((_zoomButtons != null) && (_zoomButtons.containsPoint(event.x, event.y))) {
-                  int buttonRadius = _zoomButtons.getHeight() / 2;
-                  int dist2FromZoomOut = getDistSquared(event.x, event.y, (_zoomLeft + buttonRadius), (_zoomTop + buttonRadius));
+            buttonDown = event.button;
+            if (buttonDown == 1) {
+               if ((zoomButtons != null) && (zoomButtons.containsPoint(event.x, event.y))) {
+                  int buttonRadius = zoomButtons.getHeight() / 2;
+                  int dist2FromZoomOut = getDistSquared(event.x, event.y, (zoomLeft + buttonRadius), (zoomTop + buttonRadius));
                   //dist2FromZoomOut *= 1.2;
                   if (dist2FromZoomOut < (buttonRadius * buttonRadius)) {
                      zoom(-1, event.display);
                   }
                   else {
-                     int dist2FromZoomIn = getDistSquared(event.x, event.y, ((_zoomLeft + _zoomButtons.getWidth()) - buttonRadius),
-                                                          ((_zoomTop + _zoomButtons.getHeight()) - buttonRadius));
+                     int dist2FromZoomIn = getDistSquared(event.x, event.y, ((zoomLeft + zoomButtons.getWidth()) - buttonRadius),
+                                                          ((zoomTop + zoomButtons.getHeight()) - buttonRadius));
                      //dist2FromZoomIn *= 1.2;
                      if (dist2FromZoomIn < (buttonRadius * buttonRadius)) {
                         zoom(1, event.display);
                      }
                      else {
-                        int dist2FromZoomReset = getDistSquared(event.x, event.y, (_zoomLeft + (_zoomButtons.getWidth() / 2)),
-                                                                (_zoomTop + (_zoomButtons.getHeight() / 2)));
+                        int dist2FromZoomReset = getDistSquared(event.x, event.y, (zoomLeft + (zoomButtons.getWidth() / 2)),
+                                                                (zoomTop + (zoomButtons.getHeight() / 2)));
                         if (dist2FromZoomReset < (buttonRadius * buttonRadius)) {
                            zoom(0, event.display);
                         }
@@ -482,27 +483,27 @@ public class GLView implements Listener
                   }
                   return;
                }
-               if ((_elevationButtons != null) && (_elevationButtons.containsPoint(event.x, event.y))) {
-                  int buttonRadius = _elevationButtons.getWidth() / 2;
-                  int elevationCenterY = _elevationTop + (_elevationButtons.getHeight() / 2);
-                  int dist2FromElevationUp = getDistSquared(event.x, event.y, (_elevationLeft + buttonRadius), (_elevationTop + buttonRadius));
+               if ((elevationButtons != null) && (elevationButtons.containsPoint(event.x, event.y))) {
+                  int buttonRadius = elevationButtons.getWidth() / 2;
+                  int elevationCenterY = elevationTop + (elevationButtons.getHeight() / 2);
+                  int dist2FromElevationUp = getDistSquared(event.x, event.y, (elevationLeft + buttonRadius), (elevationTop + buttonRadius));
                   if ((event.y < elevationCenterY) && (dist2FromElevationUp < (buttonRadius * buttonRadius))) {
                      // raise elevation
-                     if (++_elevationPower > MAX_ELEVATION_POWER) {
-                        _elevationPower = MAX_ELEVATION_POWER;
+                     if (++elevationPower > MAX_ELEVATION_POWER) {
+                        elevationPower = MAX_ELEVATION_POWER;
                      }
                   }
                   else {
-                     int dist2FromElevationDn = getDistSquared(event.x, event.y, ((_elevationLeft + _elevationButtons.getWidth()) - buttonRadius),
-                                                               ((_elevationTop + _elevationButtons.getHeight()) - buttonRadius));
+                     int dist2FromElevationDn = getDistSquared(event.x, event.y, ((elevationLeft + elevationButtons.getWidth()) - buttonRadius),
+                                                               ((elevationTop + elevationButtons.getHeight()) - buttonRadius));
                      if ((event.y > elevationCenterY) && (dist2FromElevationDn < (buttonRadius * buttonRadius))) {
                         // lower elevation
-                        if (--_elevationPower < MIN_ELEVATION_POWER) {
-                           _elevationPower = MIN_ELEVATION_POWER;
+                        if (--elevationPower < MIN_ELEVATION_POWER) {
+                           elevationPower = MIN_ELEVATION_POWER;
                         }
                      }
                   }
-                  _cameraPosition = new Tuple3(_cameraPosition.getX(), getHeightAtCurrentElevationPower(), _cameraPosition.getZ());
+                  cameraPosition = new Tuple3(cameraPosition.getX(), getHeightAtCurrentElevationPower(), cameraPosition.getZ());
                   drawScene(event.display);
                   return;
                }
@@ -511,11 +512,11 @@ public class GLView implements Listener
                // TODO: do we handle multiple selection?
                //       if so, watch for the CTRL or SHIFT key, and if down, set multiselection to true
                if (!multiselection) {
-                  while (_selectedObjects.size() > 0) {
-                     TexturedObject selectedObject = _selectedObjects.remove(0);
+                  while (selectedObjects.size() > 0) {
+                     TexturedObject selectedObject = selectedObjects.remove(0);
                      selectedObject.setSelected(false);
                      // notify any watcher that the selection changed
-                     for (ISelectionWatcher watcher : _selectionWatchers) {
+                     for (ISelectionWatcher watcher : selectionWatchers) {
                         watcher.ObjectSelected(selectedObject, this, false);
                      }
                   }
@@ -531,61 +532,61 @@ public class GLView implements Listener
             {
                setupView();
                WorldCoordinatesResults results = findWorldCoordinatedForScreenLocation(screenLoc);
-               mouseDownWorldCoordinates = results._worldCoordinates;
-               _texturedObjectClickedUpon = results._object;
-               _texturedObjectClickedUponAngleFromCenter = results._angleFromCenter;
-               _texturedObjectClickedUponNormalizedDistanceFromCenter = results._normalizedDistanceFromCenter;
+               mouseDownWorldCoordinates = results.worldCoordinates;
+               texturedObjectClickedUpon = results.object;
+               texturedObjectClickedUponAngleFromCenter = results.angleFromCenter;
+               texturedObjectClickedUponNormalizedDistanceFromCenter = results.normalizedDistanceFromCenter;
 
                GL11.glPopMatrix();
             }
             // notify any watcher that the selection changed
-            if (_texturedObjectClickedUpon != null) {
-               for (ISelectionWatcher watcher : _selectionWatchers) {
-                  watcher.onMouseDown(_texturedObjectClickedUpon, event, _texturedObjectClickedUponAngleFromCenter,
-                                      _texturedObjectClickedUponNormalizedDistanceFromCenter);
+            if (texturedObjectClickedUpon != null) {
+               for (ISelectionWatcher watcher : selectionWatchers) {
+                  watcher.onMouseDown(texturedObjectClickedUpon, event, texturedObjectClickedUponAngleFromCenter,
+                                      texturedObjectClickedUponNormalizedDistanceFromCenter);
                }
             }
 
-            if (_buttonDown == BUTTON_DRAG) {
-               _mouseDownPosWorldCoordinates = mouseDownWorldCoordinates;
-               _initialMouseDownCameraPosition = _cameraPosition;
+            if (buttonDown == BUTTON_DRAG) {
+               mouseDownPosWorldCoordinates = mouseDownWorldCoordinates;
+               initialMouseDownCameraPosition = cameraPosition;
             }
-            else if (_buttonDown == BUTTON_PAN) {
-               _mouseDownPosScreenCoordinates = screenLoc;
-               _initialMouseDownPosScreenCoordinates = screenLoc;
+            else if (buttonDown == BUTTON_PAN) {
+               mouseDownPosScreenCoordinates = screenLoc;
+               initialMouseDownPosScreenCoordinates = screenLoc;
             }
             drawScene(event.display);
          }
          else if (event.type == SWT.MouseUp) {
-            if (_initialMouseDownPosScreenCoordinates != null) {
-               if (_initialMouseDownPosScreenCoordinates.subtract(screenLoc).magnitude() < 3) {
-                  if (_texturedObjectClickedUpon != null) {
-                     _selectedObjects.add(_texturedObjectClickedUpon);
-                     _texturedObjectClickedUpon.setSelected(true);
+            if (initialMouseDownPosScreenCoordinates != null) {
+               if (initialMouseDownPosScreenCoordinates.subtract(screenLoc).magnitude() < 3) {
+                  if (texturedObjectClickedUpon != null) {
+                     selectedObjects.add(texturedObjectClickedUpon);
+                     texturedObjectClickedUpon.setSelected(true);
 
                      // notify any watcher that the mouse is up, and of the selected item
-                     for (ISelectionWatcher watcher : _selectionWatchers) {
-                        watcher.ObjectSelected(_texturedObjectClickedUpon, this, true);
-                        watcher.onMouseUp(_texturedObjectClickedUpon, event, _texturedObjectClickedUponAngleFromCenter,
-                                          _texturedObjectClickedUponNormalizedDistanceFromCenter);
+                     for (ISelectionWatcher watcher : selectionWatchers) {
+                        watcher.ObjectSelected(texturedObjectClickedUpon, this, true);
+                        watcher.onMouseUp(texturedObjectClickedUpon, event, texturedObjectClickedUponAngleFromCenter,
+                                          texturedObjectClickedUponNormalizedDistanceFromCenter);
                      }
                   }
                }
             }
-            _buttonDown = 0;
-            _mouseDownPosWorldCoordinates = null;
-            _mouseDownPosScreenCoordinates = null;
-            _initialMouseDownCameraPosition = null;
-            _initialMouseDownPosScreenCoordinates = null;
-            _texturedObjectClickedUpon = null;
-            _texturedObjectClickedUponAngleFromCenter = 0;
-            _texturedObjectClickedUponNormalizedDistanceFromCenter = 0;
+            buttonDown = 0;
+            mouseDownPosWorldCoordinates = null;
+            mouseDownPosScreenCoordinates = null;
+            initialMouseDownCameraPosition = null;
+            initialMouseDownPosScreenCoordinates = null;
+            texturedObjectClickedUpon = null;
+            texturedObjectClickedUponAngleFromCenter = 0;
+            texturedObjectClickedUponNormalizedDistanceFromCenter = 0;
             drawScene(event.display);
 
          }
          else if (event.type == SWT.MouseMove) {
-            if ((_buttonDown == BUTTON_DRAG) && (_mouseDownPosWorldCoordinates != null) && (_initialMouseDownCameraPosition != null)) {
-               if (_allowDrag) {
+            if ((buttonDown == BUTTON_DRAG) && (mouseDownPosWorldCoordinates != null) && (initialMouseDownCameraPosition != null)) {
+               if (allowDrag) {
                   GL11.glLoadIdentity();
                   /******************/
                   // Save matrix state
@@ -594,7 +595,7 @@ public class GLView implements Listener
                   GL11.glPushMatrix(); // (top) matrix is equivalent to identity matrix now.
                   {
                      useAsCurrentCanvas();
-                     _cameraPosition = _initialMouseDownCameraPosition;
+                     cameraPosition = initialMouseDownCameraPosition;
                      setupView();
                      FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
                      GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix);
@@ -605,41 +606,41 @@ public class GLView implements Listener
                      IntBuffer viewport = BufferUtils.createIntBuffer(16);
                      GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
 
-                     Tuple3 newMouseWorldPos = GetWorldPositionAtScreenLocAndWorldYPos(screenLoc, _mouseDownPosWorldCoordinates.getY(), modelMatrix,
+                     Tuple3 newMouseWorldPos = GetWorldPositionAtScreenLocAndWorldYPos(screenLoc, mouseDownPosWorldCoordinates.getY(), modelMatrix,
                                                                                        projMatrix, viewport);
-                     Tuple3 movementSinceMouseDown = newMouseWorldPos.subtract(_mouseDownPosWorldCoordinates);
-                     _cameraPosition = _initialMouseDownCameraPosition.add(movementSinceMouseDown);
+                     Tuple3 movementSinceMouseDown = newMouseWorldPos.subtract(mouseDownPosWorldCoordinates);
+                     cameraPosition = initialMouseDownCameraPosition.add(movementSinceMouseDown);
 
-                     _cameraPosition = new Tuple3(Math.min(-_minOccupiedPosition.getX(), Math.max(_cameraPosition.getX(), -_maxOccupiedPosition.getZ())),
-                                                  _cameraPosition.getY(),
-                                                  Math.min(-_minOccupiedPosition.getX(), Math.max(_cameraPosition.getZ(), -_maxOccupiedPosition.getZ()))
+                     cameraPosition = new Tuple3(Math.min(-minOccupiedPosition.getX(), Math.max(cameraPosition.getX(), -maxOccupiedPosition.getZ())),
+                                                 cameraPosition.getY(),
+                                                 Math.min(-minOccupiedPosition.getX(), Math.max(cameraPosition.getZ(), -maxOccupiedPosition.getZ()))
                                                   );
                      GL11.glPopMatrix();
-                     //System.out.println("camera now at " + _cameraPosition.toString());
+                     //System.out.println("camera now at " + cameraPosition.toString());
                   }
                   // drag complete
                   drawScene(event.display);
                   return;
                }
             }
-            else if ((_buttonDown == BUTTON_PAN) && (_mouseDownPosScreenCoordinates != null)) {
-               if (_allowPan) {
-                  float dx = _mouseDownPosScreenCoordinates.getX() - screenLoc.getX();
-                  float dy = _mouseDownPosScreenCoordinates.getY() - screenLoc.getY();
-                  _mouseDownPosScreenCoordinates = screenLoc;
-                  _yRot -= (_fieldOfViewYangle * dy) / _height;
-                  _xRot -= (_fieldOfViewYangle * _aspectRatio * dx) / _width;
+            else if ((buttonDown == BUTTON_PAN) && (mouseDownPosScreenCoordinates != null)) {
+               if (allowPan) {
+                  float dx = mouseDownPosScreenCoordinates.getX() - screenLoc.getX();
+                  float dy = mouseDownPosScreenCoordinates.getY() - screenLoc.getY();
+                  mouseDownPosScreenCoordinates = screenLoc;
+                  yRot -= (fieldOfViewYangle * dy) / height;
+                  xRot -= (fieldOfViewYangle * aspectRatio * dx) / width;
 
-                  for (IGLViewListener listener : _listeners) {
-                     listener.viewAngleChanged((float)((_xRot  * Math.PI) / 180), (float)((_yRot  * Math.PI) / 180));
+                  for (IGLViewListener listener : listeners) {
+                     listener.viewAngleChanged((float)((xRot * Math.PI) / 180), (float)((yRot * Math.PI) / 180));
                   }
-                  GLU.gluPerspective(_fieldOfViewYangle, _aspectRatio, _zNear, _zFar);
+                  GLU.gluPerspective(fieldOfViewYangle, aspectRatio, zNear, zFar);
                   // pan complete
                   drawScene(event.display);
                   return;
                }
             }
-            if ((_buttonDown != 0) || _watchMouseMove) {
+            if ((buttonDown != 0) || watchMouseMove) {
                GL11.glLoadIdentity();
                /******************/
                // Save matrix state
@@ -649,22 +650,22 @@ public class GLView implements Listener
                {
                   setupView();
                   WorldCoordinatesResults results = findWorldCoordinatedForScreenLocation(screenLoc);
-                  _texturedObjectClickedUpon = results._object;
-                  _texturedObjectClickedUponAngleFromCenter = results._angleFromCenter;
-                  _texturedObjectClickedUponNormalizedDistanceFromCenter = results._normalizedDistanceFromCenter;
+                  texturedObjectClickedUpon = results.object;
+                  texturedObjectClickedUponAngleFromCenter = results.angleFromCenter;
+                  texturedObjectClickedUponNormalizedDistanceFromCenter = results.normalizedDistanceFromCenter;
 
                   GL11.glPopMatrix();
                }
                // notify any watcher that the mouse is up, and of the selected item
-               if (_texturedObjectClickedUpon != null) {
-                  for (ISelectionWatcher watcher : _selectionWatchers) {
-                     if (_buttonDown != 0) {
-                        watcher.onMouseDrag(_texturedObjectClickedUpon, event, _texturedObjectClickedUponAngleFromCenter,
-                                            _texturedObjectClickedUponNormalizedDistanceFromCenter);
+               if (texturedObjectClickedUpon != null) {
+                  for (ISelectionWatcher watcher : selectionWatchers) {
+                     if (buttonDown != 0) {
+                        watcher.onMouseDrag(texturedObjectClickedUpon, event, texturedObjectClickedUponAngleFromCenter,
+                                            texturedObjectClickedUponNormalizedDistanceFromCenter);
                      }
-                     else if (_watchMouseMove) {
-                        watcher.onMouseMove(_texturedObjectClickedUpon, event, _texturedObjectClickedUponAngleFromCenter,
-                                            _texturedObjectClickedUponNormalizedDistanceFromCenter);
+                     else if (watchMouseMove) {
+                        watcher.onMouseMove(texturedObjectClickedUpon, event, texturedObjectClickedUponAngleFromCenter,
+                                            texturedObjectClickedUponNormalizedDistanceFromCenter);
                      }
                   }
                }
@@ -679,12 +680,12 @@ public class GLView implements Listener
          }
          else if (event.type == SWT.MouseVerticalWheel) {
             // record the old zoom level, then do the zoom
-            float fieldOfViewYangleBefore = _fieldOfViewYangle;
+            float fieldOfViewYangleBefore = fieldOfViewYangle;
             zoom((event.count / 3), event.display);
             // Now pan the view so the position under the mouse point wont seem to have moved at all
-            if (fieldOfViewYangleBefore != _fieldOfViewYangle) {
-               _yRot += ((_fieldOfViewYangle - fieldOfViewYangleBefore) * (event.y - (_height / 2.0))) / _height;
-               _xRot += ((_fieldOfViewYangle - fieldOfViewYangleBefore) * (event.x - (_width / 2.0))) / _width;
+            if (fieldOfViewYangleBefore != fieldOfViewYangle) {
+               yRot += ((fieldOfViewYangle - fieldOfViewYangleBefore) * (event.y - (height / 2.0))) / height;
+               xRot += ((fieldOfViewYangle - fieldOfViewYangleBefore) * (event.x - (width / 2.0))) / width;
                // pan complete, redraw the view
                drawScene(event.display);
             }
@@ -700,12 +701,12 @@ public class GLView implements Listener
    }
 
    public void setElevationPower(int elevationPower) {
-      _elevationPower = Math.min(Math.max(MIN_ELEVATION_POWER, elevationPower), MAX_ELEVATION_POWER);
-      _cameraPosition = new Tuple3(_cameraPosition.getX(), getHeightAtCurrentElevationPower(), _cameraPosition.getZ());
+      this.elevationPower = Math.min(Math.max(MIN_ELEVATION_POWER, elevationPower), MAX_ELEVATION_POWER);
+      cameraPosition = new Tuple3(cameraPosition.getX(), getHeightAtCurrentElevationPower(), cameraPosition.getZ());
    }
 
    public void setHeightScaleByApproximateHeightInInches(float desiredHeightInInchesIn) {
-      float desiredHeightInInches = Math.min(desiredHeightInInchesIn, _zFar);
+      float desiredHeightInInches = Math.min(desiredHeightInInchesIn, zFar);
 
       for (int scale = 0; scale < MAX_ELEVATION_POWER; scale++) {
          if (-getHeightInInchesForElevationPower(scale) > desiredHeightInInches) {
@@ -717,23 +718,23 @@ public class GLView implements Listener
    }
 
    private float getHeightInInchesForElevationPower(int elevationPower) {
-      return (float) (-_heightScale * Math.pow(1.5, elevationPower));
+      return (float) (-heightScale * Math.pow(1.5, elevationPower));
    }
    private float getHeightAtCurrentElevationPower() {
-      float val = getHeightInInchesForElevationPower(_elevationPower);
-      if (val > _zFar) {
-         _elevationPower--;
+      float val = getHeightInInchesForElevationPower(elevationPower);
+      if (val > zFar) {
+         elevationPower--;
          return getHeightAtCurrentElevationPower();
       }
       return val;
    }
 
    public void addSelectionWatcher(ISelectionWatcher watcher) {
-      _selectionWatchers.add(watcher);
+      selectionWatchers.add(watcher);
    }
 
    public boolean removeSelectionWatcher(ISelectionWatcher watcher) {
-      return _selectionWatchers.remove(watcher);
+      return selectionWatchers.remove(watcher);
    }
 
    //   private String convertMatrixToString(IntBuffer matrixBuffer) {
@@ -786,10 +787,10 @@ public class GLView implements Listener
       public WorldCoordinatesResults() {
       }
 
-      public TexturedObject _object                       = null; // _texturedObjectClickedUpon
-      public double         _angleFromCenter              = 0;   // _texturedObjectClickedUponAngleFromCenter
-      public double         _normalizedDistanceFromCenter = 0;   // _texturedObjectClickedUponNormalizedDistanceFromCenter
-      public Tuple3         _worldCoordinates             = null;
+      public TexturedObject object                       = null; // texturedObjectClickedUpon
+      public double         angleFromCenter              = 0;   // texturedObjectClickedUponAngleFromCenter
+      public double         normalizedDistanceFromCenter = 0;   // texturedObjectClickedUponNormalizedDistanceFromCenter
+      public Tuple3         worldCoordinates             = null;
    }
 
    private WorldCoordinatesResults findWorldCoordinatedForScreenLocation(Tuple2 screenLoc) {
@@ -808,16 +809,16 @@ public class GLView implements Listener
       Tuple3 lowestZObjectLocationInScreenCoordinated = null;
       //long startTime = System.currentTimeMillis();
 
-      synchronized (_models) {
-         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_models)) {
-            for (TexturedObject model : _models) {
+      synchronized (models) {
+         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_models)) {
+            for (TexturedObject model : models) {
                Tuple3 objectLocationInWindowCoords = model.getScreenPosition3dContainingScreenPoint(invertedScreenLoc, modelMatrix, projMatrix, viewport);
                if (objectLocationInWindowCoords != null) {
                   if (objectLocationInWindowCoords.getZ() > 0) {
                      if ((lowestZObjectLocationInScreenCoordinated == null)
                               || (objectLocationInWindowCoords.getZ() < lowestZObjectLocationInScreenCoordinated.getZ())) {
                         lowestZObjectLocationInScreenCoordinated = objectLocationInWindowCoords;
-                        results._object = model;
+                        results.object = model;
                      }
                   }
                }
@@ -826,21 +827,21 @@ public class GLView implements Listener
       }
       //long duration = System.currentTimeMillis() - startTime;
       //startTime = System.currentTimeMillis();
-      //System.out.println("findWorldCoordinatedForScreenLocation point #1 took " + duration + "ms. (" + _models.size() + " models)");
+      //System.out.println("findWorldCoordinatedForScreenLocation point #1 took " + duration + "ms. (" + models.size() + " models)");
 
-      if (results._object != null) {
+      if (results.object != null) {
          FloatBuffer clickPosInWorldCoordsBuffer = BufferUtils.createFloatBuffer(3);
          GLU.gluUnProject(lowestZObjectLocationInScreenCoordinated.getX(), lowestZObjectLocationInScreenCoordinated.getY(),
                           lowestZObjectLocationInScreenCoordinated.getZ(), modelMatrix, projMatrix, viewport, clickPosInWorldCoordsBuffer);
          Tuple3 clickPosInWorldCoords = new Tuple3(clickPosInWorldCoordsBuffer);
-         Tuple3 objCenter = results._object.getObjectCenter();
+         Tuple3 objCenter = results.object.getObjectCenter();
          Tuple3 delta = objCenter.subtract(clickPosInWorldCoords);
-         results._angleFromCenter = Math.atan2(delta.getZ(), delta.getX());
+         results.angleFromCenter = Math.atan2(delta.getZ(), delta.getX());
          double distanceFromCenter = Math.sqrt((delta.getX() * delta.getX()) + (delta.getZ() * delta.getZ()));
-         Tuple3 objectBoundingDimensions = results._object.getObjectBoundingCubeDimensions();
+         Tuple3 objectBoundingDimensions = results.object.getObjectBoundingCubeDimensions();
          double flatObjectRadius = Math.sqrt((objectBoundingDimensions.getX() * objectBoundingDimensions.getX()) + (objectBoundingDimensions.getZ()
                                              * objectBoundingDimensions.getZ()));
-         results._normalizedDistanceFromCenter = distanceFromCenter / (flatObjectRadius / 2);
+         results.normalizedDistanceFromCenter = distanceFromCenter / (flatObjectRadius / 2);
          //duration = System.currentTimeMillis() - startTime;
          //startTime = System.currentTimeMillis();
          //System.out.println("findWorldCoordinatedForScreenLocation point #2 took " + duration + "ms.");
@@ -849,7 +850,7 @@ public class GLView implements Listener
          FloatBuffer objectPosition3d = BufferUtils.createFloatBuffer(3);
          GLU.gluUnProject(lowestZObjectLocationInScreenCoordinated.getX(), lowestZObjectLocationInScreenCoordinated.getY(),
                           lowestZObjectLocationInScreenCoordinated.getZ(), modelMatrix, projMatrix, viewport, objectPosition3d);
-         results._worldCoordinates = new Tuple3(objectPosition3d.get(0), objectPosition3d.get(1), objectPosition3d.get(2));
+         results.worldCoordinates = new Tuple3(objectPosition3d.get(0), objectPosition3d.get(1), objectPosition3d.get(2));
          //duration = System.currentTimeMillis() - startTime;
          //startTime = System.currentTimeMillis();
          //System.out.println("findWorldCoordinatedForScreenLocation point #3 took " + duration + "ms.");
@@ -951,32 +952,32 @@ public class GLView implements Listener
    }
 
    public void resizeCanvas() {
-      Rectangle bounds = _GlCanvas.getBounds();
-      _width = bounds.width;
-      _height = bounds.height;
-      if (_zoomButtons != null) {
-         _zoomLeft = _width - _zoomButtons.getWidth() - 10;
-         _zoomTop = _height - _zoomButtons.getHeight() - 10;
+      Rectangle bounds = glCanvas.getBounds();
+      width = bounds.width;
+      height = bounds.height;
+      if (zoomButtons != null) {
+         zoomLeft = width - zoomButtons.getWidth() - 10;
+         zoomTop = height - zoomButtons.getHeight() - 10;
       }
-      if (_elevationButtons != null) {
-         _elevationLeft = _width - _elevationButtons.getWidth() - 10;
-         _elevationTop = _zoomTop - _elevationButtons.getHeight();
+      if (elevationButtons != null) {
+         elevationLeft = width - elevationButtons.getWidth() - 10;
+         elevationTop = zoomTop - elevationButtons.getHeight();
       }
-      if (_width == 0) {
-         _width = 800;
+      if (width == 0) {
+         width = 800;
       }
-      if (_height == 0) {
-         _height = 600;
+      if (height == 0) {
+         height = 600;
       }
-      _aspectRatio = ((float) _width) / _height;
+      aspectRatio = ((float) width) / height;
 
       if (!useAsCurrentCanvas()) {
          return;
       }
-      GL11.glViewport(0, 0, _width, _height);
+      GL11.glViewport(0, 0, width, height);
       GL11.glMatrixMode(GL11.GL_PROJECTION);
       GL11.glLoadIdentity();
-      GLU.gluPerspective(_fieldOfViewYangle, _aspectRatio, _zNear, _zFar);
+      GLU.gluPerspective(fieldOfViewYangle, aspectRatio, zNear, zFar);
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glLoadIdentity();
    }
@@ -995,7 +996,7 @@ public class GLView implements Listener
 
       // now enter orthographic projection
       GL11.glLoadIdentity();
-      GL11.glOrtho(0, _width, _height, 0, -1, 1);
+      GL11.glOrtho(0, width, height, 0, -1, 1);
       GL11.glDisable(GL11.GL_DEPTH_TEST);
       GL11.glDisable(GL11.GL_LIGHTING);
    }
@@ -1014,45 +1015,44 @@ public class GLView implements Listener
    }
 
    public TextureLoader getTextureLoader() {
-      return _textureLoader;
+      return textureLoader;
    }
 
    public Message addString(int fontIndex, String text, int x, int y, int z) {
       Message msg = new Message();
-      msg._font = fontIndex;
-      msg._text = text;
-      msg._xLoc = x;
-      msg._yLoc = y;
-      msg._zLoc = z;
-      _messages.add(msg);
+      msg.font = fontIndex;
+      msg.text = text;
+      msg.xLoc = x;
+      msg.yLoc = y;
+      msg.zLoc = z;
+      messages.add(msg);
       return msg;
    }
 
    public void addModel(TexturedObject model) {
-      synchronized (_models) {
-         _lock_models.check();
-         _models.add(model);
+      synchronized (models) {
+         lock_models.check();
+         models.add(model);
       }
    }
    public void setMapExtents(int x, int y) {
       int buffer = 300;
-       _maxOccupiedPosition = new Tuple3((rad15 * x) + buffer, 0, (rad32 * y) + buffer);
-       _minOccupiedPosition = new Tuple3(-buffer, 0f, -buffer);
+       maxOccupiedPosition = new Tuple3((rad15 * x) + buffer, 0, (rad32 * y) + buffer);
+       minOccupiedPosition = new Tuple3(-buffer, 0f, -buffer);
    }
 
    public void addMessage(Message message) {
-      synchronized (_messages) {
-         _lock_messages.check();
-         _messages.add(message);
+      synchronized (messages) {
+         lock_messages.check();
+         messages.add(message);
       }
    }
 
    public void setWatchMouseMove(boolean watchMouseMove) {
-      _watchMouseMove = watchMouseMove;
+      this.watchMouseMove = watchMouseMove;
    }
 
-   List<IGLViewListener> _listeners = new ArrayList<>();
    public void addViewListener(IGLViewListener listener) {
-      _listeners.add(listener);
+      listeners.add(listener);
    }
 }

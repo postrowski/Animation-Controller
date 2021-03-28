@@ -15,8 +15,8 @@ public abstract class TwistBendJoint extends BallSocketJoint
             glView, lengthFactor, widthFactor, raceName, isMale);
    }
    public void setAngles(float front, float twistCW) {
-      _frontRot.setValue(front);
-      _twistCW.setValue(twistCW);
+      frontRot.setValue(front);
+      this.twistCW.setValue(twistCW);
       validateRanges();
    }
    @Override

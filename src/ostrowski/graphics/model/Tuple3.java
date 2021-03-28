@@ -9,14 +9,14 @@ import java.nio.FloatBuffer;
  *
  */
 public class Tuple3 {
-    static int NEXT_ID = 0;
-    public int objId = NEXT_ID++;
-	/** The x element in this tuple */
-	protected float _x;
-	/** The y element in this tuple */
-	protected float _y;
-	/** The z element in this tuple */
-	protected float _z;
+   static    int   NEXT_ID = 0;
+   public    int   objId   = NEXT_ID++;
+   /** The x element in this tuple */
+   protected float x;
+   /** The y element in this tuple */
+   protected float y;
+   /** The z element in this tuple */
+   protected float z;
 
 	/**
 	 * Create a new 3 dimensional tuple
@@ -26,30 +26,30 @@ public class Tuple3 {
 	 * @param z The Z element value for the new tuple
 	 */
    public Tuple3(float x,float y,float z) {
-      this._x = x;
-      this._y = y;
-      this._z = z;
+      this.x = x;
+      this.y = y;
+      this.z = z;
    }
    public Tuple3(FloatBuffer buffer) {
-      this._x = buffer.get(0);
-      this._y = buffer.get(1);
-      this._z = buffer.get(2);
+      this.x = buffer.get(0);
+      this.y = buffer.get(1);
+      this.z = buffer.get(2);
    }
 
    public void scale(double xScale, double yScale, double zScale) {
-      _x *= xScale;
-      _y *= yScale;
-      _z *= zScale;
+      x *= xScale;
+      y *= yScale;
+      z *= zScale;
    }
    public void move(double xOffset, double yOffset, double zOffset) {
-      _x += xOffset;
-      _y += yOffset;
-      _z += zOffset;
+      x += xOffset;
+      y += yOffset;
+      z += zOffset;
    }
    public void move(Tuple3 offset) {
-      _x = _x + offset.getX();
-      _y = _y + offset.getY();
-      _z = _z + offset.getZ();
+      x = x + offset.getX();
+      y = y + offset.getY();
+      z = z + offset.getZ();
    }
 
 	/**
@@ -58,7 +58,7 @@ public class Tuple3 {
 	 * @return The X element value from this tuple
 	 */
 	public float getX() {
-		return _x;
+		return x;
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class Tuple3 {
 	 * @return The Y element value from this tuple
 	 */
 	public float getY() {
-		return _y;
+		return y;
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class Tuple3 {
 	 * @return The Z element value from this tuple
 	 */
 	public float getZ() {
-		return _z;
+		return z;
 	}
 
    public Tuple3 add(float dx, float dy, float dz) {
@@ -103,7 +103,7 @@ public class Tuple3 {
    }
 
    public Tuple3 crossProduct(Tuple3 other) {
-      return new Tuple3((_y*other._z) - (_z*other._y), (_z*other._x) - (_x*other._z), (_x*other._y) - (_y*other._x));
+      return new Tuple3((y * other.z) - (z * other.y), (z * other.x) - (x * other.z), (x * other.y) - (y * other.x));
    }
    public double magnitude() {
       return Math.sqrt(this.dotProduct(this));
@@ -134,12 +134,12 @@ public class Tuple3 {
       return matrix.multiply(this);
    }
    public void applyTransformationInPlace(Matrix3x3 matrix) {
-      float x = dotProduct(matrix._row[0]);
-      float y = dotProduct(matrix._row[1]);
-      float z = dotProduct(matrix._row[2]);
-      _x = x;
-      _y = y;
-      _z = z;
+      float x = dotProduct(matrix.row[0]);
+      float y = dotProduct(matrix.row[1]);
+      float z = dotProduct(matrix.row[2]);
+      this.x = x;
+      this.y = y;
+      this.z = z;
    }
 
 }

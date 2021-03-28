@@ -38,13 +38,20 @@ public class ObjHex extends ObjData
 
    private static double PI_3rd = Math.PI / 3.0;
 
-   // No need to protect access to _boundsVerts, its only modified in the ctor
-   private final List<Tuple3> _boundsVerts = new ArrayList<>();
-   long _uniqueNumericKey = -1;
+   // No need to protect access to boundsVerts, its only modified in the ctor
+   private final List<Tuple3> boundsVerts = new ArrayList<>();
+   long uniqueNumericKey = -1;
+   public final Semaphore            lock_humans          = new Semaphore("ObjHex_humans", AnimationControllerSemaphore.CLASS_OBJHEX_HUMANS);
+   public final Semaphore            lock_texturedObjects = new Semaphore("ObjHex_texturedObjects", AnimationControllerSemaphore.CLASS_OBJHEX_TEXTUREDOBJECTS);
+   public final Semaphore            lock_objects         = new Semaphore("ObjHex_objects", AnimationControllerSemaphore.CLASS_OBJHEX_OBJECTS);
+   public final List<HumanBody>      humans               = new ArrayList<>();
+   public final List<TexturedObject> texturedObjects      = new ArrayList<>();
+   public final List<ObjData>        objects              = new ArrayList<>();
+   private      Message              message;
 
    public ObjHex(Tuple3 center, float edgeRadius, float boundsRadius, Terrain terrain, long uniqueNumericKey) {
       super();
-      _uniqueNumericKey = uniqueNumericKey;
+      this.uniqueNumericKey = uniqueNumericKey;
       Tuple3 normal = new Tuple3(0, 0, 1);
       Tuple2 texCenter;
       int row = terrain.ordinal() / COLS_IN_TERRAIN;
@@ -66,32 +73,32 @@ public class ObjHex extends ObjData
                                         (float)Math.cos(worldAngle) * boundsRadius);
          Tuple2 textureCoord = texCenter.add((float) Math.sin(textureAngle) * EDGE_OFFSET_FROM_CENTER_Y,
                                              (float) Math.cos(textureAngle) * EDGE_OFFSET_FROM_CENTER_X);
-         _boundsVerts.add(boundsVert);
-         _verts.add(edgeVert);
+         boundsVerts.add(boundsVert);
+         verts.add(edgeVert);
          texCoords.add(textureCoord);
       }
       for (int i = 0; i < 6; i++) {
          Face face = new Face(3);
          face.addPoint(center, texCenter, normal);
-         face.addPoint(_verts.get(i), texCoords.get(i), normal);
+         face.addPoint(verts.get(i), texCoords.get(i), normal);
          int j = (i + 1) % 6;
-         face.addPoint(_verts.get(j), texCoords.get(j), normal);
-         _faces.add(face);
+         face.addPoint(verts.get(j), texCoords.get(j), normal);
+         faces.add(face);
       }
    }
    public void addWall(int pointStart, int pointEnd, float wallHeight, float thickness, boolean hasDoor, boolean doorIsOpen) {
       int vertStart = pointStart / 2;
       int vertEnd   = pointEnd / 2;
-      Tuple3 startGround = _boundsVerts.get(vertStart);
-      Tuple3 endGround = _boundsVerts.get(vertEnd);
+      Tuple3 startGround = boundsVerts.get(vertStart);
+      Tuple3 endGround = boundsVerts.get(vertEnd);
       if ((pointStart % 2) == 1) {
          int nextStart = (vertStart + 1) % 6;
-         Tuple3 nextTuple = _boundsVerts.get(nextStart);
+         Tuple3 nextTuple = boundsVerts.get(nextStart);
          startGround = startGround.add(nextTuple).divide(2f);
       }
       if ((pointEnd % 2) == 1) {
          int nextEnd = (vertEnd + 1) % 6;
-         Tuple3 nextTuple = _boundsVerts.get(nextEnd);
+         Tuple3 nextTuple = boundsVerts.get(nextEnd);
          endGround = endGround.add(nextTuple).divide(2f);
       }
       Tuple3 startHigh = startGround.add(0, wallHeight, 0);
@@ -115,14 +122,14 @@ public class ObjHex extends ObjData
       Tuple3 startHighBack = startHigh.subtract(thicknessAdj);
       Tuple3 endHighBack = endHigh.subtract(thicknessAdj);
 
-      _verts.add(startGroundFront);
-      _verts.add(endGroundFront);
-      _verts.add(startHighFront);
-      _verts.add(endHighFront);
-      _verts.add(startGroundBack);
-      _verts.add(endGroundBack);
-      _verts.add(startHighBack);
-      _verts.add(endHighBack);
+      verts.add(startGroundFront);
+      verts.add(endGroundFront);
+      verts.add(startHighFront);
+      verts.add(endHighFront);
+      verts.add(startGroundBack);
+      verts.add(endGroundBack);
+      verts.add(startHighBack);
+      verts.add(endHighBack);
 
       double horizontalDistance = endGroundFront.subtract(startGroundFront).magnitude();
       int horizontalTextureRepeatCount = (int) (horizontalDistance / 20) + 1;
@@ -260,13 +267,13 @@ public class ObjHex extends ObjData
       face.addPoint(point1, texture1, normal);
       face.addPoint(point2, texture2, normal);
       face.addPoint(point3, texture3, normal);
-      _faces.add(face);
+      faces.add(face);
 
       face = new Face(3);
       face.addPoint(point3, texture3, normal);
       face.addPoint(point4, texture4, normal);
       face.addPoint(point1, texture1, normal);
-      _faces.add(face);
+      faces.add(face);
    }
 
    public void addTree(float trunkDiameter, float height) {
@@ -297,7 +304,7 @@ public class ObjHex extends ObjData
       }
    }
    public Tuple3 centerLocation() {
-      return _boundsVerts.get(0).add(_boundsVerts.get(3)).divide(2f);
+      return boundsVerts.get(0).add(boundsVerts.get(3)).divide(2f);
    }
 
    public void addBush(float bushDiameter, float height, boolean isDense) {
@@ -343,41 +350,33 @@ public class ObjHex extends ObjData
       }
    }
 
-   public final Semaphore _lock_humans = new Semaphore("ObjHex_humans", AnimationControllerSemaphore.CLASS_OBJHEX_HUMANS);
-   public final Semaphore _lock_texturedObjects = new Semaphore("ObjHex_texturedObjects", AnimationControllerSemaphore.CLASS_OBJHEX_TEXTUREDOBJECTS);
-   public final Semaphore _lock_objects = new Semaphore("ObjHex_objects", AnimationControllerSemaphore.CLASS_OBJHEX_OBJECTS);
-   public final List<HumanBody> _humans = new ArrayList<>();
-   public final List<TexturedObject> _texturedObjects = new ArrayList<>();
-   public final List<ObjData> _objects = new ArrayList<>();
-   private Message _message;
-
    public void addHuman(HumanBody human, int facing) {
       Tuple3 center = centerLocation();
       human.setLocationOffset(center);
       human.setFacing(facing);
       human.setHeightBasedOnLowestLimbPoint();
-      synchronized (_lock_humans) {
-         _lock_humans.check();
-         _humans.add(human);
+      synchronized (lock_humans) {
+         lock_humans.check();
+         humans.add(human);
       }
    }
    public void addTexturedObject(TexturedObject obj) {
       Tuple3 center = centerLocation();
-      for (ObjModel model : obj._models) {
+      for (ObjModel model : obj.models) {
          model.move(center.getX(), center.getY(), center.getZ());
       }
 
-      synchronized (_lock_texturedObjects) {
-         _lock_texturedObjects.check();
-         _texturedObjects.add(obj);
+      synchronized (lock_texturedObjects) {
+         lock_texturedObjects.check();
+         texturedObjects.add(obj);
       }
    }
    public void addObject(ObjData obj) {
       Tuple3 center = centerLocation();
       obj.move(center.getX(), center.getY(), center.getZ());
-      synchronized (_lock_objects) {
-         _lock_objects.check();
-         _objects.add(obj);
+      synchronized (lock_objects) {
+         lock_objects.check();
+         objects.add(obj);
       }
    }
 
@@ -416,7 +415,7 @@ public class ObjHex extends ObjData
          return;
       }
       TexturedObject floor = new TexturedObject(texture, texture, false/*invertNormals*/);
-      floor._opacity = opacity;
+      floor.opacity = opacity;
       List<Tuple2> texturePoints = getHexPointForTexture(color, 0/*textureRotation*/);
       Tuple3 normal = new Tuple3(0, 0, 1);
       ObjData data = new ObjData();
@@ -425,11 +424,11 @@ public class ObjHex extends ObjData
          Face face = new Face(3);
          Tuple3 vertex = this.centerLocation().add(0, height, 0);
          face.addPoint(vertex, texturePoints.get(6), normal);
-         vertex = _verts.get(i).add(0, height, 0);
+         vertex = verts.get(i).add(0, height, 0);
          face.addPoint(vertex, texturePoints.get(i), normal);
-         vertex = _verts.get(j).add(0, height, 0);
+         vertex = verts.get(j).add(0, height, 0);
          face.addPoint(vertex, texturePoints.get(j), normal);
-         data._faces.add(face);
+         data.faces.add(face);
       }
       ObjModel model = new ObjModel(data, view);
       floor.addObject(model );
@@ -442,8 +441,8 @@ public class ObjHex extends ObjData
       Tuple2 textureCoordEndGround   = new Tuple2(0.748f, 0.252f);
       Tuple2 textureCoordEndHigh     = new Tuple2(0.748f, 0.498f);
       for (int i=0 ; i<6 ; i++) {
-         Tuple3 startGround = _boundsVerts.get(i);
-         Tuple3 endGround = _boundsVerts.get((i+1) %6);
+         Tuple3 startGround = boundsVerts.get(i);
+         Tuple3 endGround = boundsVerts.get((i + 1) % 6);
          Tuple3 startHigh = startGround.add(0, rockHeight, 0);
          Tuple3 endHigh = endGround.add(0, rockHeight, 0);
          addRectangle(endGround, endHigh, startHigh, startGround,
@@ -457,7 +456,7 @@ public class ObjHex extends ObjData
                                     1.0f-(CENTER_OFFSET_Y + (row * ROW_HEIGHT)));
       Tuple3 normal = new Tuple3(0, 0, 1);
       List<Tuple2> texCoords = new ArrayList<>();
-      Random rnd = new Random(_uniqueNumericKey); rnd.nextFloat();
+      Random rnd = new Random(uniqueNumericKey); rnd.nextFloat();
       double textureAngle = rnd.nextFloat() * Math.PI * 2.0;
       for (int i = 0; i < 6; i++) {
          textureAngle += PI_3rd;
@@ -468,10 +467,10 @@ public class ObjHex extends ObjData
       for (int i = 0; i < 6; i++) {
          Face face = new Face(3);
          face.addPoint(center, texCenter, normal);
-         face.addPoint(_boundsVerts.get(i).add(0f, rockHeight, 0f), texCoords.get(i), normal);
+         face.addPoint(boundsVerts.get(i).add(0f, rockHeight, 0f), texCoords.get(i), normal);
          int j = (i + 1) % 6;
-         face.addPoint(_boundsVerts.get(j).add(0f, rockHeight, 0f), texCoords.get(j), normal);
-         _faces.add(face);
+         face.addPoint(boundsVerts.get(j).add(0f, rockHeight, 0f), texCoords.get(j), normal);
+         faces.add(face);
       }
    }
 
@@ -486,9 +485,9 @@ public class ObjHex extends ObjData
       super(in);
    }
    public Message getMessage() {
-      return _message;
+      return message;
    }
    public void setMessage(Message message) {
-      _message = message;
+      this.message = message;
    }
 }

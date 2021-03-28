@@ -33,14 +33,25 @@ import ostrowski.util.SemaphoreAutoLocker;
 
 //import org.lwjgl.opengl.glu.Cylinder;
 //import org.lwjgl.opengl.glu.Sphere;
-public abstract class BodyPart extends TexturedObject
-{
-   static public HashMap<String, HashMap<Class <? extends BodyPart>, HashMap<String, Object>>> _valuesByNameByClassByRace = new HashMap<>();
+public abstract class BodyPart extends TexturedObject {
+   static public HashMap<String, HashMap<Class<? extends BodyPart>, HashMap<String, Object>>>
+                         valuesByNameByClassByRace = new HashMap<>();
+   public        String  name;
+   protected     String  raceName;
+   protected     boolean isMale;
+
+   public    GLView glView;
+   protected float  lengthFactor;
+   protected float  widthFactor;
+
+   Semaphore lock_children = null;
+   protected List<TexturedObject> children;
+
    static {
       HashMap<Class <? extends BodyPart>, HashMap<String, Object>> valuesByNameByClass;
       {
          valuesByNameByClass = new HashMap<>();
-         _valuesByNameByClassByRace.put("human", valuesByNameByClass);
+         valuesByNameByClassByRace.put("human", valuesByNameByClass);
 
          HashMap<String, Object> raceValue = new HashMap<>();
          raceValue.put("tiltForward", (float) -120);
@@ -83,7 +94,7 @@ public abstract class BodyPart extends TexturedObject
 
       {
          valuesByNameByClass = new HashMap<>();
-         _valuesByNameByClassByRace.put("wolf", valuesByNameByClass);
+         valuesByNameByClassByRace.put("wolf", valuesByNameByClass);
          HashMap<String, Object> raceValue = new HashMap<>();
          raceValue.put("tiltForward", (float) 0);
          valuesByNameByClass.put(HumanBody.class, raceValue );
@@ -124,9 +135,9 @@ public abstract class BodyPart extends TexturedObject
    }
 
    protected HashMap<String, Object> getValuesByNameForClass() {
-      HashMap<Class <? extends BodyPart>, HashMap<String, Object>> valuesByClass = _valuesByNameByClassByRace.get(_raceName);
+      HashMap<Class <? extends BodyPart>, HashMap<String, Object>> valuesByClass = valuesByNameByClassByRace.get(raceName);
       if (valuesByClass == null) {
-         valuesByClass = _valuesByNameByClassByRace.get("human");
+         valuesByClass = valuesByNameByClassByRace.get("human");
       }
       if (valuesByClass == null) {
          return null;
@@ -215,33 +226,22 @@ public abstract class BodyPart extends TexturedObject
       return ((RangedValue) value).clone();
    }
 
-   public String   _name;
-   protected String _raceName;
-   protected boolean _isMale;
-
-   public GLView   _glView;
-   protected float _lengthFactor;
-   protected float _widthFactor;
-
-   Semaphore _lock_children = null;
-   protected List<TexturedObject> _children;
-
    protected abstract Semaphore getChildLock();
    public BodyPart(String name, String modelResourceName, boolean invertNormals,
                    Texture texture, Texture selectedTexture,
                    GLView glView, float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super(texture, selectedTexture, invertNormals);
 
-      _lock_children = getChildLock();
+      lock_children = getChildLock();
 
-      _glView = glView;
-      _name = name;
-      _lengthFactor = lengthFactor;
-      _widthFactor = widthFactor;
-      _raceName = raceName;
-      _isMale = isMale;
+      this.glView = glView;
+      this.name = name;
+      this.lengthFactor = lengthFactor;
+      this.widthFactor = widthFactor;
+      this.raceName = raceName;
+      this.isMale = isMale;
 
-      _children = new ArrayList<>();
+      children = new ArrayList<>();
 
       if ((modelResourceName != null) && (modelResourceName.length() > 0)) {
          try {
@@ -273,9 +273,9 @@ public abstract class BodyPart extends TexturedObject
    }
 
    public void addChild(TexturedObject child) {
-      synchronized(_children) {
-         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-            _children.add(child);
+      synchronized(children) {
+         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+            children.add(child);
          }
       }
    }
@@ -283,7 +283,7 @@ public abstract class BodyPart extends TexturedObject
 
    @Override
    public String getName() {
-      return _name;
+      return name;
    }
 
    public abstract void validateRanges();

@@ -2,7 +2,6 @@ package ostrowski.graphics.objects3d;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
@@ -20,24 +19,24 @@ import ostrowski.util.Semaphore;
 
 public class Pelvis extends BodyPart
 {
-   private RangedValue _hipTwistLeftUp;   // + = left hip higher than right
-   private RangedValue _spinalTwistCC;    // one hip more forward than the other
-   private Tuple3 _legOffset;
+   private RangedValue hipTwistLeftUp;   // + = left hip higher than right
+   private RangedValue spinalTwistCC;    // one hip more forward than the other
+   private Tuple3      legOffset;
 
-   private Leg    _leftLeg;
-   private Leg    _rightLeg;
-   private Thing  _armor = null;
+   private Leg   leftLeg;
+   private Leg   rightLeg;
+   private Thing armor = null;
 
    public Pelvis(Texture texture, Texture selectedTexture, GLView glView, float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super("Pelvis", "res/bodyparts/pelvis.obj", false/*invertNormals*/, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _leftLeg = new Leg(true, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _rightLeg = new Leg(false, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
+      leftLeg = new Leg(true, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
+      rightLeg = new Leg(false, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
 
-      _hipTwistLeftUp = getValueByNameAsRangedValue("hipTwistLeftUp");
-      _spinalTwistCC = getValueByNameAsRangedValue("spinalTwistCC");
-      _legOffset = getValueByNameAsTuple3("legOffset"); // 8
+      hipTwistLeftUp = getValueByNameAsRangedValue("hipTwistLeftUp");
+      spinalTwistCC = getValueByNameAsRangedValue("spinalTwistCC");
+      legOffset = getValueByNameAsTuple3("legOffset"); // 8
 
-      _legOffset = new Tuple3(_legOffset.getX() * widthFactor, _legOffset.getY() * widthFactor, _legOffset.getZ() * lengthFactor);
+      legOffset = new Tuple3(legOffset.getX() * widthFactor, legOffset.getY() * widthFactor, legOffset.getZ() * lengthFactor);
    }
 
    @Override
@@ -49,30 +48,30 @@ public class Pelvis extends BodyPart
       GL11.glPushMatrix(); // save matrix before modeling.
       {
          // from midpoint on spine
-         GL11.glRotatef(_hipTwistLeftUp.getValue(), 0f, 1.0f, 0f);
-         GL11.glRotatef(_spinalTwistCC.getValue(), 0f, 0f, 1.0f);
-         for (ObjModel model : _models) {
+         GL11.glRotatef(hipTwistLeftUp.getValue(), 0f, 1.0f, 0f);
+         GL11.glRotatef(spinalTwistCC.getValue(), 0f, 0f, 1.0f);
+         for (ObjModel model : models) {
             model.render(glView, messages);
          }
 
-         if (_armor != null) {
-            _armor.render(glView, messages);
+         if (armor != null) {
+            armor.render(glView, messages);
          }
          GL11.glRotatef(180, 1f, 0f, 0f);
-         GL11.glTranslatef(_legOffset.getX(), _legOffset.getY(), _legOffset.getZ());
+         GL11.glTranslatef(legOffset.getX(), legOffset.getY(), legOffset.getZ());
          //if (GLScene.USING_SCALING_FOR_LEFT_SIDE)
          GL11.glScalef(-1f, 1f, 1f);
          glView.defineLight(-1f);
-         if (_leftLeg != null) {
-            _leftLeg.render(glView, messages);
+         if (leftLeg != null) {
+            leftLeg.render(glView, messages);
          }
          //if (GLScene.USING_SCALING_FOR_LEFT_SIDE)
          GL11.glScalef(-1f, 1f, 1f);
          glView.defineLight(1f);
-         GL11.glTranslatef(-2 * _legOffset.getX(), 0f, 0f);
+         GL11.glTranslatef(-2 * legOffset.getX(), 0f, 0f);
          //GL11.glColor3f(1.0f, 0.0f, 0.0f);
-         if (_rightLeg != null) {
-            _rightLeg.render(glView, messages);
+         if (rightLeg != null) {
+            rightLeg.render(glView, messages);
          }
          //GL11.glRotatef(90, 0f, -1f, 0f);
       }
@@ -85,13 +84,13 @@ public class Pelvis extends BodyPart
 
    @Override
    public void validateRanges() {
-      _hipTwistLeftUp.validateRange();
-      _spinalTwistCC.validateRange();
-      if (_leftLeg != null) {
-         _leftLeg.validateRanges();
+      hipTwistLeftUp.validateRange();
+      spinalTwistCC.validateRange();
+      if (leftLeg != null) {
+         leftLeg.validateRanges();
       }
-      if (_rightLeg != null) {
-         _rightLeg.validateRanges();
+      if (rightLeg != null) {
+         rightLeg.validateRanges();
       }
    }
 
@@ -157,41 +156,41 @@ public class Pelvis extends BodyPart
 
    @Override
    public void setAnglesFromMap(HashMap<String, Float> angleMap) {
-      if (angleMap.containsKey("h")) _hipTwistLeftUp.setValue(angleMap.get("h"));
-      if (angleMap.containsKey("t")) _spinalTwistCC.setValue(angleMap.get("t"));
+      if (angleMap.containsKey("h")) hipTwistLeftUp.setValue(angleMap.get("h"));
+      if (angleMap.containsKey("t")) spinalTwistCC.setValue(angleMap.get("t"));
    }
 
    @Override
    public HashMap<String, Float> getAnglesMap() {
       HashMap<String, Float> anglesMap = new HashMap<>();
-      anglesMap.put("h", _hipTwistLeftUp.getValue());
-      anglesMap.put("t", _spinalTwistCC.getValue());
+      anglesMap.put("h", hipTwistLeftUp.getValue());
+      anglesMap.put("t", spinalTwistCC.getValue());
       return anglesMap;
    }
 
    @Override
    public void getParts(List<TexturedObject> parts) {
       parts.add(this);
-      if (_leftLeg != null) {
-         _leftLeg.getParts(parts);
+      if (leftLeg != null) {
+         leftLeg.getParts(parts);
       }
-      _rightLeg.getParts(parts);
+      rightLeg.getParts(parts);
    }
 
 
    /*
-   GL11.glRotatef(_hipTwistLeftUp.getValue(), 0f, 1.0f, 0f);
-   GL11.glRotatef(_spinalTwistCC.getValue(), 0f, 0f, 1.0f);
+   GL11.glRotatef(hipTwistLeftUp.getValue(), 0f, 1.0f, 0f);
+   GL11.glRotatef(spinalTwistCC.getValue(), 0f, 0f, 1.0f);
    GL11.glRotatef(180, 1f, 0f, 0f);
-   GL11.glTranslatef(_legOffset.getX(), _legOffset.getY(), _legOffset.getZ());
+   GL11.glTranslatef(legOffset.getX(), legOffset.getY(), legOffset.getZ());
    GL11.glScalef(-1f, 1f, 1f);
-   _leftLeg.render(glView, messages);
+   leftLeg.render(glView, messages);
    GL11.glScalef(-1f, 1f, 1f);
-   GL11.glTranslatef(-2 * _legOffset.getX(), 0f, 0f);
-   _rightLeg.render(glView, messages);
+   GL11.glTranslatef(-2 * legOffset.getX(), 0f, 0f);
+   rightLeg.render(glView, messages);
     */
    public Tuple3 getChildLocationIn3DReferenceFrame(boolean rightFoot, int depth) {
-      Leg leg = rightFoot ? _rightLeg : _leftLeg;
+      Leg leg = rightFoot ? rightLeg : leftLeg;
       Tuple3 computedLoc3;
       
       if (depth == 0) {
@@ -202,32 +201,32 @@ public class Pelvis extends BodyPart
          computedLoc3 = computedLoc3.rotate(180f, 0f, 0f);
       }
       if (!rightFoot) {
-         computedLoc3 = computedLoc3.add(-_legOffset.getX(), -_legOffset.getY(), -_legOffset.getZ());
+         computedLoc3 = computedLoc3.add(-legOffset.getX(), -legOffset.getY(), -legOffset.getZ());
          computedLoc3.scale(-1f, 1f, 1f);
       }
       else {
-         computedLoc3 = computedLoc3.add(-_legOffset.getX(), -_legOffset.getY(), -_legOffset.getZ());
+         computedLoc3 = computedLoc3.add(-legOffset.getX(), -legOffset.getY(), -legOffset.getZ());
       }
-      computedLoc3 = computedLoc3.rotate(0, _hipTwistLeftUp.getValue(), _spinalTwistCC.getValue());
+      computedLoc3 = computedLoc3.rotate(0, hipTwistLeftUp.getValue(), spinalTwistCC.getValue());
       return computedLoc3;
    }
 
    public FloatBuffer getToeLocationInWindowReferenceFrame(boolean rightFoot) {
       GL11.glPushMatrix();
       try {
-         GL11.glRotatef(_hipTwistLeftUp.getValue(), 0f, 1.0f, 0f);
-         GL11.glRotatef(_spinalTwistCC.getValue(), 0f, 0f, 1.0f);
-         GL11.glTranslatef(_legOffset.getX(), _legOffset.getY(), _legOffset.getZ());
+         GL11.glRotatef(hipTwistLeftUp.getValue(), 0f, 1.0f, 0f);
+         GL11.glRotatef(spinalTwistCC.getValue(), 0f, 0f, 1.0f);
+         GL11.glTranslatef(legOffset.getX(), legOffset.getY(), legOffset.getZ());
          if (rightFoot) {
-            if (_rightLeg == null) return BodyPart.projectToWindowLocation();
-            FloatBuffer result = _rightLeg.getEndpointLocationInWindowReferenceFrame(2);
+            if (rightLeg == null) return BodyPart.projectToWindowLocation();
+            FloatBuffer result = rightLeg.getEndpointLocationInWindowReferenceFrame(2);
             return result;
          }
-         GL11.glTranslatef(-2 * _legOffset.getX(), 0f, 0f);
+         GL11.glTranslatef(-2 * legOffset.getX(), 0f, 0f);
          //if (GLScene.USING_SCALING_FOR_LEFT_SIDE)
          GL11.glScalef(-1f, 1f, 1f);
-         if (_leftLeg == null) return BodyPart.projectToWindowLocation();
-         return _leftLeg.getEndpointLocationInWindowReferenceFrame(2);
+         if (leftLeg == null) return BodyPart.projectToWindowLocation();
+         return leftLeg.getEndpointLocationInWindowReferenceFrame(2);
       } finally {
          GL11.glPopMatrix();
       }
@@ -235,22 +234,22 @@ public class Pelvis extends BodyPart
 
    public void setArmor(Armor armor) {
       try {
-         _armor = new Thing(armor, this.getClass().getSimpleName(), _glView, _invertNormals, _lengthFactor, _widthFactor);
+         this.armor = new Thing(armor, this.getClass().getSimpleName(), glView, invertNormals, lengthFactor, widthFactor);
       } catch (IOException e) {
          // this happens if the requested armor doesn't have a piece for this bodypart
-         _armor = null;
+         this.armor = null;
       }
-      if (_leftLeg != null) _leftLeg.setArmor(armor);
-      if (_rightLeg != null) _rightLeg.setArmor(armor);
+      if (leftLeg != null) leftLeg.setArmor(armor);
+      if (rightLeg != null) rightLeg.setArmor(armor);
    }
 
    public void removeLeg(boolean rightLeg) {
-      if (rightLeg) _rightLeg = null;
-      else _leftLeg = null;
+      if (rightLeg) this.rightLeg = null;
+      else leftLeg = null;
    }
 
    public TexturedObject getModelLeg(boolean rightSide) {
-      return new Leg(!rightSide, _texture, _selectedTexture, _glView, _lengthFactor, _widthFactor, _raceName, _isMale);
+      return new Leg(!rightSide, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
    }
 
    public TexturedObject getModelTail() {

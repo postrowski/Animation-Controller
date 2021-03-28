@@ -1,11 +1,9 @@
 package ostrowski.graphics;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -13,8 +11,8 @@ import org.eclipse.swt.widgets.Text;
 
 public class NewKeyFrameDialog
 {
-   static boolean createOK = false;
-   protected String _name = "New Sequence";
+   static boolean        createOK = false;
+   protected String      name     = "New Sequence";
    protected final Shell dialog;
 
    public NewKeyFrameDialog(Shell parent) {
@@ -35,7 +33,7 @@ public class NewKeyFrameDialog
       label.setBounds(20, 15, 100, 20);
 
       final Text name = new Text(dialog, SWT.BORDER);
-      name.setText(_name);
+      name.setText(this.name);
       name.setBounds(120, 15, 100, 20);
 
       Listener listener = event -> {
@@ -47,7 +45,7 @@ public class NewKeyFrameDialog
          dialog.close();
       };
 
-      ModifyListener modifyListener = e -> _name = name.getText();
+      ModifyListener modifyListener = e -> this.name = name.getText();
       name.addModifyListener(modifyListener );
       buttonOK.addListener(SWT.Selection, listener);
       buttonCancel.addListener(SWT.Selection, listener);
@@ -62,7 +60,7 @@ public class NewKeyFrameDialog
          }
       }
       if (createOK) {
-         return _name;
+         return name;
       }
       return null;
    }

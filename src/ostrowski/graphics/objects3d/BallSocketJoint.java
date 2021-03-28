@@ -21,13 +21,13 @@ import ostrowski.util.SemaphoreAutoLocker;
 
 public abstract class BallSocketJoint extends BodyPart
 {
-   RangedValue   _frontRot;
-   RangedValue   _sideRot;
-   RangedValue   _twistCW;
+   RangedValue frontRot;
+   RangedValue sideRot;
+   RangedValue twistCW;
 
-   float         _length;        //in inches
-   boolean       _leftSideOfBody;
-   private Thing _armor;
+   float   length;        //in inches
+   boolean leftSideOfBody;
+   private Thing armor;
 
    @Override
    protected abstract Semaphore getChildLock();
@@ -35,13 +35,13 @@ public abstract class BallSocketJoint extends BodyPart
                           Texture texture, Texture selectedTexture, GLView glView,
                           float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super(name, modelResourceName, leftSideOfBody, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _leftSideOfBody = leftSideOfBody;
-      _frontRot   = getValueByNameAsRangedValue("frontRot");
-      _sideRot    = getValueByNameAsRangedValue("sideRot");
-      _twistCW    = getValueByNameAsRangedValue("twistCW");
-      _length     = getValueByNameAsFloat("_length");
+      this.leftSideOfBody = leftSideOfBody;
+      frontRot = getValueByNameAsRangedValue("frontRot");
+      sideRot = getValueByNameAsRangedValue("sideRot");
+      twistCW = getValueByNameAsRangedValue("twistCW");
+      length = getValueByNameAsFloat("_length");
 
-      _length *= lengthFactor;
+      length *= lengthFactor;
    }
 
    public FloatBuffer getEndpointLocationInWindowReferenceFrame(int childCount) {
@@ -51,9 +51,9 @@ public abstract class BallSocketJoint extends BodyPart
          return projectToWindowLocation();
       }
 
-      synchronized(_children) {
-         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-            for (TexturedObject child : _children) {
+      synchronized(children) {
+         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+            for (TexturedObject child : children) {
                if (child instanceof BallSocketJoint) {
                   return ((BallSocketJoint)child).getEndpointLocationInWindowReferenceFrame(childCount - 1);
                }
@@ -65,9 +65,9 @@ public abstract class BallSocketJoint extends BodyPart
 
    @Override
    public void validateRanges() {
-      _frontRot.validateRange();
-      _sideRot.validateRange();
-      _twistCW.validateRange();
+      frontRot.validateRange();
+      sideRot.validateRange();
+      twistCW.validateRange();
    }
 
    @Override
@@ -79,30 +79,30 @@ public abstract class BallSocketJoint extends BodyPart
          rotateJoint();
 //         GL11.glPushMatrix();
 //         {
-            for (ObjModel model : _models) {
+            for (ObjModel model : models) {
                model.render(glView, messages);
             }
-            if (_armor != null)
+            if (armor != null)
              {
-               _armor.render(glView, messages);
+               armor.render(glView, messages);
 //         }
 //         GL11.glPopMatrix();
             }
 
          translateLength();
-         if (_children.size() > 0) {
+         if (children.size() > 0) {
             //if ((this instanceof Hand) && !this._leftSideOfBody) {
             if (this instanceof Hand) {
                List<Thing> weapons = new ArrayList<>();
                List<TexturedObject> objects = new ArrayList<>();
                WeaponPart weaponPart = null;
-               synchronized(_children) {
-                  try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-                     for (TexturedObject child : _children) {
+               synchronized(children) {
+                  try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+                     for (TexturedObject child : children) {
                         if (child instanceof WeaponPart) {
                            weaponPart = (WeaponPart) child;
                         }
-                        else if ((child instanceof Thing) && (((Thing)child)._weapon != null)) {
+                        else if ((child instanceof Thing) && (((Thing)child).weapon != null)) {
                            weapons.add((Thing)child);
                         }
                         else {
@@ -114,15 +114,15 @@ public abstract class BallSocketJoint extends BodyPart
                for (TexturedObject child : objects) {
                   child.render(glView, messages);
                }
-               float weaponHoldOffsetY = 1.25f * _widthFactor;
-               float weaponHoldOffsetZ = -1.5f * _widthFactor;
+               float weaponHoldOffsetY = 1.25f * widthFactor;
+               float weaponHoldOffsetZ = -1.5f * widthFactor;
                GL11.glTranslatef(0f, weaponHoldOffsetY, weaponHoldOffsetZ);
                if (weaponPart != null) {
-                  if (weaponPart._lengthOffset != null) {
-                     GL11.glTranslatef(weaponPart._lengthOffset, 0f, 0f);
+                  if (weaponPart.lengthOffset != null) {
+                     GL11.glTranslatef(weaponPart.lengthOffset, 0f, 0f);
                   }
-                  if (weaponPart._twistRot != null) {
-                     GL11.glRotatef(weaponPart._twistRot, 1f, 0f, 0f);
+                  if (weaponPart.twistRot != null) {
+                     GL11.glRotatef(weaponPart.twistRot, 1f, 0f, 0f);
                   }
                }
                for (TexturedObject child : weapons) {
@@ -130,9 +130,9 @@ public abstract class BallSocketJoint extends BodyPart
                }
             }
             else {
-               synchronized(_children) {
-                  try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-                     for (TexturedObject child : _children) {
+               synchronized(children) {
+                  try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+                     for (TexturedObject child : children) {
                         child.render(glView, messages);
                      }
                   }
@@ -144,11 +144,11 @@ public abstract class BallSocketJoint extends BodyPart
    }
 
    public Tuple3 getEndPoint(int childDepth) {
-      Tuple3 endpoint = new Tuple3(0f, 0f, _length);
+      Tuple3 endpoint = new Tuple3(0f, 0f, length);
       if (childDepth > 0) {
-         synchronized(_children) {
-            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-               for (TexturedObject child : _children) {
+         synchronized(children) {
+            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+               for (TexturedObject child : children) {
                   if (child instanceof BallSocketJoint) {
                      endpoint = ((BallSocketJoint)child).getEndPoint(childDepth-1).add(endpoint);
                      break;
@@ -157,52 +157,52 @@ public abstract class BallSocketJoint extends BodyPart
             }
          }
       }
-      endpoint = endpoint.rotate(_frontRot.getValue() -90f, -_sideRot.getValue(), -_twistCW.getValue());
+      endpoint = endpoint.rotate(frontRot.getValue() - 90f, -sideRot.getValue(), -twistCW.getValue());
       return endpoint;
    }
 
    private void rotateJoint() {
       //GL11.glRotatef(90f, -1.0f, 0.0f, 0.0f);
       //GL11.glRotatef(_frontRot.getValue(), 1.0f, 0.0f, 0.0f);
-      GL11.glRotatef(_frontRot.getValue() - 90f, 1.0f, 0.0f, 0.0f);
+      GL11.glRotatef(frontRot.getValue() - 90f, 1.0f, 0.0f, 0.0f);
       //if (GLScene.USING_SCALING_FOR_LEFT_SIDE) {
-         GL11.glRotatef(-_sideRot.getValue(), 0.0f, 1.0f, 0.0f);
-         GL11.glRotatef(-_twistCW.getValue(), 0.0f, 0.0f, 1.0f);
+         GL11.glRotatef(-sideRot.getValue(), 0.0f, 1.0f, 0.0f);
+         GL11.glRotatef(-twistCW.getValue(), 0.0f, 0.0f, 1.0f);
       //}
       //else {
-      //   GL11.glRotatef((_leftSideOfBody ? _sideRot.getValue() : -_sideRot.getValue()), 0.0f, 1.0f, 0.0f);
-      //   GL11.glRotatef((_leftSideOfBody ? _twistCW.getValue() : -_twistCW.getValue()), 0.0f, 0.0f, 1.0f);
+      //   GL11.glRotatef((_leftSideOfBody ? sideRot.getValue() : -sideRot.getValue()), 0.0f, 1.0f, 0.0f);
+      //   GL11.glRotatef((_leftSideOfBody ? twistCW.getValue() : -twistCW.getValue()), 0.0f, 0.0f, 1.0f);
       //}
    }
    private void translateLength() {
-      GL11.glTranslatef(0.0f, 0.0f, _length);
+      GL11.glTranslatef(0.0f, 0.0f, length);
    }
 
    public void removeHeldThings() {
       List<TexturedObject> itemsToRemove = new ArrayList<>();
-      synchronized(_children) {
-         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-            for (TexturedObject child : _children) {
+      synchronized(children) {
+         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+            for (TexturedObject child : children) {
                if (child instanceof BodyPart) {
                   continue;
                }
                itemsToRemove.add(child);
             }
-            _children.removeAll(itemsToRemove);
+            children.removeAll(itemsToRemove);
          }
       }
    }
 
    public void setArmor(Armor armor) {
       try {
-         _armor = new Thing(armor, this.getClass().getSimpleName(), _glView, _invertNormals, _lengthFactor, _widthFactor);
+         this.armor = new Thing(armor, this.getClass().getSimpleName(), glView, invertNormals, lengthFactor, widthFactor);
       } catch (IOException e) {
          // armor of this type for this body party doesn't exist, use nothing
-         _armor = null;
+         this.armor = null;
       }
-      synchronized(_children) {
-         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-            for (TexturedObject child : _children) {
+      synchronized(children) {
+         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+            for (TexturedObject child : children) {
                if (child instanceof BallSocketJoint) {
                   ((BallSocketJoint) child).setArmor(armor);
                }
@@ -214,13 +214,13 @@ public abstract class BallSocketJoint extends BodyPart
    @Override
    public void setAnglesFromMap(HashMap<String, Float> angleMap) {
       if (angleMap.containsKey("f")) {
-         _frontRot.setValue(angleMap.get("f"));
+         frontRot.setValue(angleMap.get("f"));
       }
       if (angleMap.containsKey("s")) {
-         _sideRot.setValue(angleMap.get("s"));
+         sideRot.setValue(angleMap.get("s"));
       }
       if (angleMap.containsKey("t")) {
-         _twistCW.setValue(angleMap.get("t"));
+         twistCW.setValue(angleMap.get("t"));
       }
       validateRanges();
    }
@@ -228,18 +228,18 @@ public abstract class BallSocketJoint extends BodyPart
    @Override
    public HashMap<String, Float> getAnglesMap() {
       HashMap<String, Float> anglesMap = new HashMap<>();
-      anglesMap.put("f", _frontRot.getValue());
-      anglesMap.put("s", _sideRot.getValue());
-      anglesMap.put("t", _twistCW.getValue());
+      anglesMap.put("f", frontRot.getValue());
+      anglesMap.put("s", sideRot.getValue());
+      anglesMap.put("t", twistCW.getValue());
       return anglesMap;
    }
 
    @Override
    public void getParts(List<TexturedObject> parts) {
       parts.add(this);
-      synchronized(_children) {
-         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-            for (TexturedObject child : _children) {
+      synchronized(children) {
+         try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+            for (TexturedObject child : children) {
                if (child instanceof BodyPart) {
                   ((BodyPart) child).getParts(parts);
                }

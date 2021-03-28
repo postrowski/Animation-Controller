@@ -2,7 +2,6 @@ package ostrowski.graphics.objects3d;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
@@ -23,36 +22,36 @@ import ostrowski.util.SemaphoreAutoLocker;
 
 public class Torso extends BodyPart
 {
-   RangedValue   _spineTwistToLeft;    // + = left hip higher than right
-   RangedValue   _spineSide;
-   RangedValue   _twistRightShoulderUp; // one hip more forward than the other
-   RangedValue   _spineBendToFront;
-   float         _upperSpineLength;
-   float         _shoulderWidth;
-   float         _neckOffset;
+   RangedValue spineTwistToLeft;    // + = left hip higher than right
+   RangedValue spineSide;
+   RangedValue twistRightShoulderUp; // one hip more forward than the other
+   RangedValue spineBendToFront;
+   float       upperSpineLength;
+   float       shoulderWidth;
+   float       neckOffset;
 
-   Arm           _leftArm;
-   Arm           _rightArm;
-   Head          _head;
-   private Thing _armor;
+   Arm  leftArm;
+   Arm  rightArm;
+   Head head;
+   private Thing armor;
 
    public Torso(Texture texture, Texture selectedTexture, GLView glView, float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super("Torso", "res/bodyparts/torso.obj", false/*invertNormals*/, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _leftArm = new Arm(true, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _rightArm = new Arm(false, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _head = new Head(texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
+      leftArm = new Arm(true, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
+      rightArm = new Arm(false, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
+      head = new Head(texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
 
-      _spineTwistToLeft       = getValueByNameAsRangedValue("spineTwistToLeft");
-      _spineSide              = getValueByNameAsRangedValue("spineSide");
-      _twistRightShoulderUp   = getValueByNameAsRangedValue("twistRightShoulderUp");
-      _spineBendToFront       = getValueByNameAsRangedValue("spineBend");
-      _upperSpineLength       = getValueByNameAsFloat("upperSpineLength");
-      _shoulderWidth          = getValueByNameAsFloat("shoulderWidth");
-      _neckOffset             = getValueByNameAsFloat("neckOffset");
+      spineTwistToLeft = getValueByNameAsRangedValue("spineTwistToLeft");
+      spineSide = getValueByNameAsRangedValue("spineSide");
+      twistRightShoulderUp = getValueByNameAsRangedValue("twistRightShoulderUp");
+      spineBendToFront = getValueByNameAsRangedValue("spineBend");
+      upperSpineLength = getValueByNameAsFloat("upperSpineLength");
+      shoulderWidth = getValueByNameAsFloat("shoulderWidth");
+      neckOffset = getValueByNameAsFloat("neckOffset");
 
-      _shoulderWidth    *= widthFactor;
-      _upperSpineLength *= lengthFactor;
-      _neckOffset       *= lengthFactor;
+      shoulderWidth *= widthFactor;
+      upperSpineLength *= lengthFactor;
+      neckOffset *= lengthFactor;
    }
 
 
@@ -66,40 +65,40 @@ public class Torso extends BodyPart
          //GL11.glTranslatef(0.0f, 10.0f, 0.0f);    // base matrix is (0, 10, 0); std rh axis (-z depth)
 
          // from midpoint on spine
-         GL11.glRotatef(_spineBendToFront.getValue(), 1f, 0f, 0f);
-         GL11.glRotatef(_spineSide.getValue(), 0f, 1f, 0f);
-         GL11.glRotatef(_spineTwistToLeft.getValue(), 0f, 0f, 1.0f);
-         for (ObjModel model : _models) {
+         GL11.glRotatef(spineBendToFront.getValue(), 1f, 0f, 0f);
+         GL11.glRotatef(spineSide.getValue(), 0f, 1f, 0f);
+         GL11.glRotatef(spineTwistToLeft.getValue(), 0f, 0f, 1.0f);
+         for (ObjModel model : models) {
             model.render(glView, messages);
          }
-         if (_armor != null) {
-            _armor.render(glView, messages);
+         if (armor != null) {
+            armor.render(glView, messages);
          }
-         GL11.glTranslatef(0f, 0f, _upperSpineLength);
-         GL11.glRotatef(_twistRightShoulderUp.getValue(), 0f, 1.0f, 0f);
-         GL11.glTranslatef(-_shoulderWidth / 2, 0f, 0f);
-         //GL11.glTranslatef(0f, _shoulderOffset, 0f);
-         if (_rightArm != null) {
-            _rightArm.render(glView, messages);
+         GL11.glTranslatef(0f, 0f, upperSpineLength);
+         GL11.glRotatef(twistRightShoulderUp.getValue(), 0f, 1.0f, 0f);
+         GL11.glTranslatef(-shoulderWidth / 2, 0f, 0f);
+         //GL11.glTranslatef(0f, shoulderOffset, 0f);
+         if (rightArm != null) {
+            rightArm.render(glView, messages);
          }
-         GL11.glTranslatef(_shoulderWidth, 0f, 0f);
+         GL11.glTranslatef(shoulderWidth, 0f, 0f);
 
 
          GL11.glPushMatrix();
          {
-            GL11.glTranslatef(-_shoulderWidth/2, 0f, _neckOffset);
+            GL11.glTranslatef(-shoulderWidth / 2, 0f, neckOffset);
             GL11.glRotatef(90, 1f, 0f, 0f);
 
             // the neck starts higher than the line joining the shoulders
-            _head.render(glView, messages);
+            head.render(glView, messages);
          }
 
          GL11.glPopMatrix();
          //if (GLScene.USING_SCALING_FOR_LEFT_SIDE)
             GL11.glScalef(-1f, 1f, 1f);
          glView.defineLight(-1f);
-         if (_leftArm != null) {
-            _leftArm.render(glView, messages);
+         if (leftArm != null) {
+            leftArm.render(glView, messages);
          }
          //if (GLScene.USING_SCALING_FOR_LEFT_SIDE)
             GL11.glScalef(-1f, 1f, 1f);
@@ -111,61 +110,61 @@ public class Torso extends BodyPart
 
    @Override
    public void validateRanges() {
-      _twistRightShoulderUp.validateRange();
-      _spineBendToFront.validateRange();
-      _spineSide.validateRange();
-      _spineTwistToLeft.validateRange();
+      twistRightShoulderUp.validateRange();
+      spineBendToFront.validateRange();
+      spineSide.validateRange();
+      spineTwistToLeft.validateRange();
 
-      if (_rightArm != null) {
-         _rightArm.validateRanges();
+      if (rightArm != null) {
+         rightArm.validateRanges();
       }
-      if (_leftArm != null) {
-         _leftArm.validateRanges();
+      if (leftArm != null) {
+         leftArm.validateRanges();
       }
-      _head.validateRanges();
+      head.validateRanges();
    }
 
 
    @Override
    public void setAnglesFromMap(HashMap<String, Float> angleMap) {
       if (angleMap.containsKey("f")) {
-         _spineBendToFront.setValue(angleMap.get("f"));
+         spineBendToFront.setValue(angleMap.get("f"));
       }
       if (angleMap.containsKey("h")) {
-         _twistRightShoulderUp.setValue(angleMap.get("h"));
+         twistRightShoulderUp.setValue(angleMap.get("h"));
       }
       if (angleMap.containsKey("s")) {
-         _spineSide.setValue(angleMap.get("s"));
+         spineSide.setValue(angleMap.get("s"));
       }
       if (angleMap.containsKey("t")) {
-         _spineTwistToLeft.setValue(angleMap.get("t"));
+         spineTwistToLeft.setValue(angleMap.get("t"));
       }
       validateRanges();
    }
    @Override
    public HashMap<String, Float> getAnglesMap() {
       HashMap<String, Float> anglesMap = new HashMap<>();
-      anglesMap.put("f", _spineBendToFront.getValue());
-      anglesMap.put("h", _twistRightShoulderUp.getValue());
-      anglesMap.put("s", _spineSide.getValue());
-      anglesMap.put("t", _spineTwistToLeft.getValue());
+      anglesMap.put("f", spineBendToFront.getValue());
+      anglesMap.put("h", twistRightShoulderUp.getValue());
+      anglesMap.put("s", spineSide.getValue());
+      anglesMap.put("t", spineTwistToLeft.getValue());
       return anglesMap;
    }
 
    @Override
    public void getParts(List<TexturedObject> parts) {
       parts.add(this);
-      if (_leftArm != null) {
-         _leftArm.getParts(parts);
+      if (leftArm != null) {
+         leftArm.getParts(parts);
       }
-      if (_rightArm != null) {
-         _rightArm.getParts(parts);
+      if (rightArm != null) {
+         rightArm.getParts(parts);
       }
-      _head.getParts(parts);
+      head.getParts(parts);
    }
 
    public Tuple3 getChildLocationIn3DReferenceFrame(boolean rightArm, int depth) {
-      Arm arm = rightArm ? _rightArm : _leftArm;
+      Arm arm = rightArm ? this.rightArm : leftArm;
       if (arm == null) {
          return new Tuple3(0, 0, 0);
       }
@@ -176,19 +175,19 @@ public class Torso extends BodyPart
       else {
          computedLoc3 = arm.getEndPoint(depth - 1);
       }
-      computedLoc3 = computedLoc3.add(new Tuple3(-_shoulderWidth / 2, 0, 0));
+      computedLoc3 = computedLoc3.add(new Tuple3(-shoulderWidth / 2, 0, 0));
       if (rightArm) {
-         computedLoc3 = computedLoc3.rotate(0, _twistRightShoulderUp.getValue(), 0);
+         computedLoc3 = computedLoc3.rotate(0, twistRightShoulderUp.getValue(), 0);
       }
       else {
-         computedLoc3 = computedLoc3.rotate(0, -_twistRightShoulderUp.getValue(), 0);
+         computedLoc3 = computedLoc3.rotate(0, -twistRightShoulderUp.getValue(), 0);
       }
-      computedLoc3 = computedLoc3.add(0f, 0f, _upperSpineLength);
+      computedLoc3 = computedLoc3.add(0f, 0f, upperSpineLength);
       if (rightArm) {
-         computedLoc3 = computedLoc3.rotate(_spineBendToFront.getValue(), _spineSide.getValue(), _spineTwistToLeft.getValue());
+         computedLoc3 = computedLoc3.rotate(spineBendToFront.getValue(), spineSide.getValue(), spineTwistToLeft.getValue());
       }
       else {
-         computedLoc3 = computedLoc3.rotate(_spineBendToFront.getValue(), -_spineSide.getValue(), -_spineTwistToLeft.getValue());
+         computedLoc3 = computedLoc3.rotate(spineBendToFront.getValue(), -spineSide.getValue(), -spineTwistToLeft.getValue());
          computedLoc3.scale(-1f, 1f, 1f);
       }
       return computedLoc3;
@@ -203,14 +202,14 @@ public class Torso extends BodyPart
          //GL11.glTranslatef(0.0f, 10.0f, 0.0f);    // base matrix is (0, 10, 0); std rh axis (-z depth)
 
          // from midpoint on spine
-         GL11.glRotatef(_spineBendToFront.getValue(), 1f, 0f, 0f);
-         GL11.glRotatef(_spineSide.getValue(), 0f, 1f, 0f);
-         GL11.glRotatef(_spineTwistToLeft.getValue(), 0f, 0f, 1.0f);
-         GL11.glTranslatef(0f, 0f, _upperSpineLength);
-         GL11.glRotatef(_twistRightShoulderUp.getValue(), 0f, 1.0f, 0f);
+         GL11.glRotatef(spineBendToFront.getValue(), 1f, 0f, 0f);
+         GL11.glRotatef(spineSide.getValue(), 0f, 1f, 0f);
+         GL11.glRotatef(spineTwistToLeft.getValue(), 0f, 0f, 1.0f);
+         GL11.glTranslatef(0f, 0f, upperSpineLength);
+         GL11.glRotatef(twistRightShoulderUp.getValue(), 0f, 1.0f, 0f);
 
          // the neck starts higher than the line joining the shoulders
-         headLoc2d = _head.getEndpointLocationInWindowReferenceFrame();
+         headLoc2d = head.getEndpointLocationInWindowReferenceFrame();
          GL11.glPopMatrix();
       }
       return headLoc2d;
@@ -249,14 +248,14 @@ public class Torso extends BodyPart
          }
          try {
             WeaponPart weaponPart = null;
-            synchronized (_children) {
-               try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-                  for (TexturedObject child : _children) {
+            synchronized (children) {
+               try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+                  for (TexturedObject child : children) {
                      if (child instanceof WeaponPart) {
                         weaponPart = (WeaponPart) child;
                      }
                   }
-                  Thing thing = new Thing(weapon, weaponPart, this._glView, _invertNormals, _lengthFactor, _lengthFactor);
+                  Thing thing = new Thing(weapon, weaponPart, this.glView, invertNormals, lengthFactor, lengthFactor);
                   addChild(thing);
                }
             }
@@ -283,8 +282,8 @@ public class Torso extends BodyPart
             return;
          }
          try {
-            Thing thing = new Thing(shield, this._glView, _invertNormals, _lengthFactor, _lengthFactor);
-            thing._facingOffset = new Tuple3(90, 0, -90);
+            Thing thing = new Thing(shield, this.glView, invertNormals, lengthFactor, lengthFactor);
+            thing.facingOffset = new Tuple3(90, 0, -90);
             addChild(thing);
          }
          catch (IOException e) {
@@ -292,9 +291,9 @@ public class Torso extends BodyPart
          }
       }
       public void setHeldThing(Weapon weapon) {
-         synchronized (_children) {
-            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-               for (TexturedObject child : this._children) {
+         synchronized (children) {
+            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+               for (TexturedObject child : this.children) {
                   if (child instanceof Hand) {
                      ((Hand) child).setHeldThing(weapon);
                      return;
@@ -319,9 +318,9 @@ public class Torso extends BodyPart
       }
 
       public void setHeldThing(Shield shield) {
-         synchronized (_children) {
-            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-               for (TexturedObject child : this._children) {
+         synchronized (children) {
+            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+               for (TexturedObject child : this.children) {
                   if (child instanceof ForeArm) {
                      ((ForeArm) child).setHeldThing(shield);
                      return;
@@ -331,9 +330,9 @@ public class Torso extends BodyPart
          }
       }
       public void setHeldThing(Weapon weapon) {
-         synchronized (_children) {
-            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-               for (TexturedObject child : this._children) {
+         synchronized (children) {
+            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+               for (TexturedObject child : this.children) {
                   if (child instanceof ForeArm) {
                      ((ForeArm) child).setHeldThing(weapon);
                      return;
@@ -352,61 +351,61 @@ public class Torso extends BodyPart
 
    public void setHeldThing(boolean rightHand, Shield shield) {
       if (rightHand) {
-         if (_rightArm != null) {
-            _rightArm.setHeldThing(shield);
+         if (rightArm != null) {
+            rightArm.setHeldThing(shield);
          }
       }
       else {
-         if (_leftArm != null) {
-            _leftArm.setHeldThing(shield);
+         if (leftArm != null) {
+            leftArm.setHeldThing(shield);
          }
       }
    }
    public void setHeldThing(boolean rightHand, Weapon weapon) {
       if (rightHand) {
-         if (_rightArm != null) {
-            _rightArm.setHeldThing(weapon);
+         if (rightArm != null) {
+            rightArm.setHeldThing(weapon);
          }
       }
       else {
-         if (_leftArm != null) {
-            _leftArm.setHeldThing(weapon);
+         if (leftArm != null) {
+            leftArm.setHeldThing(weapon);
          }
       }
    }
 
    public void setArmor(Armor armor) {
       try {
-         _armor = new Thing(armor, this.getClass().getSimpleName(), _glView, _invertNormals, _lengthFactor, _widthFactor);
+         this.armor = new Thing(armor, this.getClass().getSimpleName(), glView, invertNormals, lengthFactor, widthFactor);
       }
       catch (IOException e) {
          // this happens when we can't find the object for the Thing in the resource directories
-         _armor = null;
+         this.armor = null;
       }
-      if (_leftArm != null) {
-         _leftArm.setArmor(armor);
+      if (leftArm != null) {
+         leftArm.setArmor(armor);
       }
-      if (_rightArm != null) {
-         _rightArm.setArmor(armor);
+      if (rightArm != null) {
+         rightArm.setArmor(armor);
       }
-      _head.setArmor(armor);
+      head.setArmor(armor);
    }
 
    public void removeArm(boolean rightArm) {
       if (rightArm) {
-         _rightArm = null;
+         this.rightArm = null;
       }
       else {
-         _leftArm = null;
+         leftArm = null;
       }
    }
 
    public TexturedObject getModelHand(boolean rightSide) {
-      return new Arm(!rightSide, _texture, _selectedTexture, _glView, _lengthFactor, _widthFactor, _raceName, _isMale);
+      return new Arm(!rightSide, texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
    }
 
    public TexturedObject getModelHead() {
-      return new Head(_texture, _selectedTexture, _glView, _lengthFactor, _widthFactor, _raceName, _isMale);
+      return new Head(texture, selectedTexture, glView, lengthFactor, widthFactor, raceName, isMale);
    }
 
    public TexturedObject getModelWing(boolean rightSide) {

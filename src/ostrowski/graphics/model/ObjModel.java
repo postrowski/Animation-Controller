@@ -22,10 +22,10 @@ import ostrowski.util.SemaphoreAutoTracker;
 public class ObjModel
 {
    /** The identifier of the display list held for this model */
-   private int     _listID;
-   public ObjData  _data;
-   private final boolean _useList  = false;
-   public Tuple3   _location = new Tuple3(0, 0, 0);
+   private int           listID;
+   public ObjData        data;
+   private final boolean useList  = false;
+   public Tuple3         location = new Tuple3(0, 0, 0);
 
    /**
     * Create a new OBJ model that will render the object data
@@ -34,20 +34,20 @@ public class ObjModel
     * @param data The data to be rendered for this model
     */
    public ObjModel(ObjData data, GLView glView) {
-      if (_useList) {
+      if (useList) {
          // we're going to process the OBJ data and produce a display list
          // that will display the model. First we ask OpenGL to create
          // us a display list
-         _listID = GL11.glGenLists(1);
+         listID = GL11.glGenLists(1);
 
          // next we start producing the contents of the list
-         GL11.glNewList(_listID, GL11.GL_COMPILE);
+         GL11.glNewList(listID, GL11.GL_COMPILE);
          List<Message> messages = new ArrayList<>();
          renderWork(data, glView, messages);
          GL11.glEndList();
       }
       else {
-         _data = data;
+         this.data = data;
       }
    }
 
@@ -55,23 +55,23 @@ public class ObjModel
       renderData(data);
       if (data instanceof ObjHex) {
          ObjHex hex = (ObjHex) data;
-         synchronized (hex._lock_humans) {
-            try (SemaphoreAutoTracker sat = new SemaphoreAutoTracker(hex._lock_humans)) {
-               for (HumanBody human : hex._humans) {
+         synchronized (hex.lock_humans) {
+            try (SemaphoreAutoTracker sat = new SemaphoreAutoTracker(hex.lock_humans)) {
+               for (HumanBody human : hex.humans) {
                   human.render(glView, messages);
                }
             }
          }
-         synchronized (hex._lock_texturedObjects) {
-            try (SemaphoreAutoTracker sat = new SemaphoreAutoTracker(hex._lock_texturedObjects)) {
-               for (TexturedObject obj : hex._texturedObjects) {
+         synchronized (hex.lock_texturedObjects) {
+            try (SemaphoreAutoTracker sat = new SemaphoreAutoTracker(hex.lock_texturedObjects)) {
+               for (TexturedObject obj : hex.texturedObjects) {
                   obj.render(glView, messages);
                }
             }
          }
-         synchronized (hex._lock_objects) {
-            try (SemaphoreAutoTracker sat = new SemaphoreAutoTracker(hex._lock_objects)) {
-               for (ObjData object : hex._objects) {
+         synchronized (hex.lock_objects) {
+            try (SemaphoreAutoTracker sat = new SemaphoreAutoTracker(hex.lock_objects)) {
+               for (ObjData object : hex.objects) {
                   renderData(object);
                }
             }
@@ -88,9 +88,9 @@ public class ObjModel
                int z = (int) hexLoc.get(2);
                // Window reference frame uses y=0 at the bottom.
                // When we draw text, y=0 is at the top, so subtract y from the window height.
-               message._xLoc = x;
-               message._yLoc = y;
-               message._zLoc = z;
+               message.xLoc = x;
+               message.yLoc = y;
+               message.zLoc = z;
                messages.add(message);
                GL11.glPopMatrix();
             }
@@ -107,8 +107,8 @@ public class ObjModel
          int faceCount = data.getFaceCount();
          for (int i = 0; i < faceCount; i++) {
             Face face = data.getFace(i);
-            if (currentFaceCountSet != face._vertexCount) {
-               currentFaceCountSet = face._vertexCount;
+            if (currentFaceCountSet != face.vertexCount) {
+               currentFaceCountSet = face.vertexCount;
                GL11.glEnd();
                if (currentFaceCountSet == 3) {
                   GL11.glBegin(GL11.GL_TRIANGLES);
@@ -120,7 +120,7 @@ public class ObjModel
                   throw new RuntimeException("Only triangles and quads are supported");
                }
             }
-            for (int v = 0; v < face._vertexCount; v++) {
+            for (int v = 0; v < face.vertexCount; v++) {
                // a position, normal and 32 coordinate
                // for each vertex in the face
                Tuple3 vert = face.getVertex(v);
@@ -146,7 +146,7 @@ public class ObjModel
       float screenLocY = invertedScreenLoc.getY();
       FloatBuffer win_pos = BufferUtils.createFloatBuffer(3);
 
-      int faceCount = _data.getFaceCount();
+      int faceCount = data.getFaceCount();
       for (int i = 0; i < faceCount; i++) {
          boolean pointsToLeftOfScreenLoc = false;
          boolean pointsToRightOfScreenLoc = false;
@@ -158,9 +158,9 @@ public class ObjModel
          boolean pointsToTopOfScreenEdge = false;
          boolean pointsToBottomOfScreenEdge = false;
 
-         Face face = _data.getFace(i);
+         Face face = data.getFace(i);
          winPos3dList.clear();
-         for (int v = 0; v < face._vertexCount; v++) {
+         for (int v = 0; v < face.vertexCount; v++) {
             // a position, normal and 32 coordinate
             // for each vertex in the face
             Tuple3 vert = face.getVertex(v);
@@ -273,86 +273,86 @@ public class ObjModel
     * Render the OBJ Model
     */
    public void render(GLView glView, List<Message> messages) {
-      GL11.glTranslatef(_location.getX(), _location.getY(), _location.getZ());
+      GL11.glTranslatef(location.getX(), location.getY(), location.getZ());
 
-      if (_useList) {
+      if (useList) {
          // since we rendered our display list at construction we
          // can now just call this list causing it to be rendered
          // to the screen
-         GL11.glCallList(_listID);
+         GL11.glCallList(listID);
       }
       else {
-         renderWork(_data, glView, messages);
+         renderWork(data, glView, messages);
       }
    }
 
    public void scale(double xScale, double yScale, double zScale) {
-      _data.scale(xScale, yScale, zScale);
+      data.scale(xScale, yScale, zScale);
    }
 
    public void move(double xOffset, double yOffset, double zOffset) {
-      _data.move(xOffset, yOffset, zOffset);
+      data.move(xOffset, yOffset, zOffset);
    }
 
    public void invertNormals() {
-      _data.scaleNormals(-1.0, -1.0, -1.0);
-      for (Face face : _data._faces) {
+      data.scaleNormals(-1.0, -1.0, -1.0);
+      for (Face face : data.faces) {
          face.invertNormal();
       }
    }
 
    public void reverseRightToLeft() {
       scale(-1.0, 1.0, 1.0);
-      _data.scaleNormals(-1.0, -1.0, -1.0);
-      for (Face face : _data._faces) {
+      data.scaleNormals(-1.0, -1.0, -1.0);
+      for (Face face : data.faces) {
          face.invertNormal();
       }
    }
 
    public Tuple3 getObjectBoundingCubeMinPoints(Tuple3 minIn) {
-      if ((_data._verts == null) || (_data._verts.size() == 0)) {
+      if ((data.verts == null) || (data.verts.size() == 0)) {
          return minIn;
       }
       Tuple3 min;
       int i = 0;
       if (minIn == null) {
-         min = _data._verts.get(0);
+         min = data.verts.get(0);
          i = 1;
       }
       else {
          min = minIn;
       }
-      for (; i < _data._verts.size(); i++) {
-         Tuple3 vert = _data._verts.get(i);
+      for (; i < data.verts.size(); i++) {
+         Tuple3 vert = data.verts.get(i);
          min = new Tuple3(Math.min(min.getX(), vert.getX()), Math.min(min.getY(), vert.getY()), Math.min(min.getZ(), vert.getZ()));
       }
       return min;
    }
 
    public Tuple3 getObjectBoundingCubeMaxPoints(Tuple3 maxIn) {
-      if ((_data._verts == null) || (_data._verts.size() == 0)) {
+      if ((data.verts == null) || (data.verts.size() == 0)) {
          return maxIn;
       }
       Tuple3 max;
       int i = 0;
       if (maxIn == null) {
-         max = _data._verts.get(0);
+         max = data.verts.get(0);
          i = 1;
       }
       else {
          max = maxIn;
       }
-      for (; i < _data._verts.size(); i++) {
-         Tuple3 vert = _data._verts.get(i);
+      for (; i < data.verts.size(); i++) {
+         Tuple3 vert = data.verts.get(i);
          max = new Tuple3(Math.max(max.getX(), vert.getX()), Math.max(max.getY(), vert.getY()), Math.max(max.getZ(), vert.getZ()));
       }
       return max;
    }
 
    public Tuple3 getObjectCenter() {
-      if (_data instanceof ObjHex) {
-         return ((ObjHex) _data).centerLocation();
+      if (data instanceof ObjHex) {
+         return ((ObjHex) data).centerLocation();
       }
-      return _location;
+      return location;
    }
 }

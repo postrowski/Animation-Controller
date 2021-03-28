@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Text;
 
 public class Helper
 {
-   protected List<Control>  _controlList  = new ArrayList<>();
+   protected List<Control> controlList = new ArrayList<>();
 
    public static Composite createComposite(Composite parent, int hSpan, int style)
    {
@@ -54,7 +54,7 @@ public class Helper
       if (combo.getChildren().length > 0) {
          combo.setText(combo.getItem(0));
       }
-      _controlList.add(combo);
+      controlList.add(combo);
       return combo;
    }
    public Label createLabel(Composite parent, String text, int hAlign, int hSpan, FontData fontData) {
@@ -71,7 +71,7 @@ public class Helper
          label.setFont(font);
          font.dispose();
       }
-      _controlList.add(label);
+      controlList.add(label);
       return label;
    }
    public Text createText(Composite parent, String name, boolean editable, int hSpan) {
@@ -97,7 +97,7 @@ public class Helper
          text.setFont(font);
          font.dispose();
       }
-      _controlList.add(text);
+      controlList.add(text);
       return text;
    }
    //  This won't work until spinner control supports negative values:
@@ -131,7 +131,7 @@ public class Helper
       Font font = new Font(parent.getDisplay(), new FontData("Arial", 10, SWT.BOLD));
       group.setFont(font);
       font.dispose();
-      _controlList.add(group);
+      controlList.add(group);
       return group;
    }
    public static org.eclipse.swt.widgets.List createList(Composite parent, int hSpan, FontData fontData) {
@@ -160,7 +160,7 @@ public class Helper
       data.horizontalSpan = hSpan;
       button.setLayoutData(data);
       button.addSelectionListener(sl);
-      _controlList.add(button);
+      controlList.add(button);
       return button;
    }
    public Button createRadioButton(Composite parent, String text, FontData fontData, SelectionListener sl) {
@@ -192,7 +192,7 @@ public class Helper
       return 0;
    }
    public void enableControls(boolean enabledFlag) {
-      for (Control element : _controlList) {
+      for (Control element : controlList) {
          element.setEnabled(enabledFlag);
          if (element instanceof Text) {
             Text textElement = (Text) element;

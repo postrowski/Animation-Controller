@@ -21,20 +21,20 @@ import org.lwjgl.opengl.GL11;
  */
 public class BitmapFont {
 	/** The number of characters across the texture */
-	private final int _charactersAcross;
+	private final int charactersAcross;
 
 	/** The width of each character in pixels */
-	private final int _characterWidth;
+	private final int characterWidth;
 	/** The height of each character in pixels */
-	private final int _characterHeight;
+	private final int characterHeight;
 
 	/** The width of each character in terms of texture coordinates */
-	private final float _characterWidthInTexture;
+	private final float characterWidthInTexture;
 	/** The height of each character in terms of the texture coordinates */
-	private final float _characterHeightInTexture;
+	private final float characterHeightInTexture;
 
 	/** The texture containing the font characters */
-	private final Texture _texture;
+	private final Texture texture;
 
 	/**
 	 * Create a new font based on specific texture cut up into a specific
@@ -45,18 +45,18 @@ public class BitmapFont {
 	 * @param characterHeight The height of the characters on the sheet (in pixels)
 	 */
 	public BitmapFont(Texture texture, int characterWidth, int characterHeight) {
-		this._texture = texture;
-		this._characterWidth = characterWidth;
-		this._characterHeight = characterHeight;
+		this.texture = texture;
+		this.characterWidth = characterWidth;
+		this.characterHeight = characterHeight;
 
 		// calculate how much of the texture is taken up with each character
 		// by working out the proportion of the texture size that the character
 		// size in pixels takes up
-		_characterWidthInTexture = texture.getWidth() / (texture.getImageWidth() / characterWidth);
-		_characterHeightInTexture = texture.getHeight() / (texture.getImageHeight() / characterHeight);
+		characterWidthInTexture = texture.getWidth() / (texture.getImageWidth() / characterWidth);
+		characterHeightInTexture = texture.getHeight() / (texture.getImageHeight() / characterHeight);
 
 		// work out the number of characters that fit across the sheet
-		_charactersAcross = texture.getImageWidth() / characterWidth;
+		charactersAcross = texture.getImageWidth() / characterWidth;
 			}
 
 	/**
@@ -72,18 +72,18 @@ public class BitmapFont {
    public void drawString(int font, RGB color, float opacity, String text, int x, int y, boolean centerOnCoords) {
       Rectangle bounds;
       if (centerOnCoords) {
-         int newX = x - ((text.length() * (_characterWidth-12)) / 2);
-         int newY = y - (_characterHeight / 2);
-         bounds = new Rectangle(newX, newY, (text.length() * _characterWidth), _characterHeight);
+         int newX = x - ((text.length() * (characterWidth - 12)) / 2);
+         int newY = y - (characterHeight / 2);
+         bounds = new Rectangle(newX, newY, (text.length() * characterWidth), characterHeight);
       }
       else {
-         bounds = new Rectangle(x, y, (text.length() * _characterWidth), _characterHeight);
+         bounds = new Rectangle(x, y, (text.length() * characterWidth), characterHeight);
       }
       drawString(font, color, opacity, text, bounds );
    }
 	public void drawString(int font, RGB color, float opacity, String text, Rectangle bounds) {
 		// bind the font text so we can render quads with the characters on
-		_texture.bind();
+		texture.bind();
 
 		// turn blending on so characters are displayed above the scene
 		GL11.glEnable(GL11.GL_BLEND);
@@ -109,21 +109,21 @@ public class BitmapFont {
 			// work out the u,v texture mapping coordinates based on the
 			// index of the character and the amount of texture per
 			// character
-			float u = ((c % _charactersAcross) * _characterWidthInTexture);
-			float v = 1 - ((c / _charactersAcross) * _characterHeightInTexture);
+			float u = ((c % charactersAcross) * characterWidthInTexture);
+			float v = 1 - ((c / charactersAcross) * characterHeightInTexture);
 			v -= font * 0.5f;
 
 			// setup the quad
 			GL11.glTexCoord2f(u, v);
 			GL11.glVertex2i(x+(i*characterStep), y);
 
-			GL11.glTexCoord2f(u, v - _characterHeightInTexture);
+			GL11.glTexCoord2f(u, v - characterHeightInTexture);
          GL11.glVertex2i(x+(i*characterStep), y+characterHeight);
 
-			GL11.glTexCoord2f(u + _characterWidthInTexture, v - _characterHeightInTexture);
+			GL11.glTexCoord2f(u + characterWidthInTexture, v - characterHeightInTexture);
 			GL11.glVertex2i(x+(i*characterStep)+characterWidth, y+characterHeight);
 
-			GL11.glTexCoord2f(u + _characterWidthInTexture, v);
+			GL11.glTexCoord2f(u + characterWidthInTexture, v);
 			GL11.glVertex2i(x+(i*characterStep)+characterWidth, y);
 		}
       //$GL11.glPopAttrib(); // This sets the colour back to its original value

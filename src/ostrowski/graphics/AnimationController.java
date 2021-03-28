@@ -33,63 +33,63 @@ import ostrowski.graphics.texture.Texture;
 
 public class AnimationController implements SelectionListener, ModifyListener
 {
-   private final GLScene   _scene;
-   private final GLView    _view;
-   private HumanBody _humanModel;
-   //private Message                      _message;
-   private Table     _table;
-   //private Button    _openButton;
-   private Button    _saveButton;
-   private Button    _newSeqButton;
-   private Button    _deleteSeqButton;
-   private Combo     _sequence;
-   private Combo     _race;
-   private Button    _deleteFrameButton;
-   private Button    _copyFrameButton;
-   private Button    _insertMedianFrameButton;
-   private Combo     _leftHeldThingComboBox;
-   private Combo     _rightHeldThingComboBox;
-   private Combo     _armorComboBox;
-   private Text _positiveAssociations;
-   private Text _repeatCount;
+   private final GLScene   scene;
+   private final GLView    view;
+   private       HumanBody humanModel;
+   //private Message       message;
+   private       Table     table;
+   //private Button    openButton;
+   private       Button    saveButton;
+   private       Button    newSeqButton;
+   private       Button    deleteSeqButton;
+   private       Combo     sequence;
+   private       Combo     race;
+   private       Button    deleteFrameButton;
+   private       Button    copyFrameButton;
+   private       Button    insertMedianFrameButton;
+   private       Combo     leftHeldThingComboBox;
+   private       Combo     rightHeldThingComboBox;
+   private       Combo     armorComboBox;
+   private       Text      positiveAssociations;
+   private       Text      repeatCount;
 
    public AnimationController(Composite parent, GLScene scene) {
-      _view = new GLView(parent, true/*withControls*/);
-      _view.addDefaultMap();
-      _scene = scene;
+      view = new GLView(parent, true/*withControls*/);
+      view.addDefaultMap();
+      this.scene = scene;
    }
    public void loadRace(String race) {
       Texture texture = null;
       try {
-         texture = _view.getTextureLoader().getTexture("res/bodyparts/texture_"+race+"male.png");
+         texture = view.getTextureLoader().getTexture("res/bodyparts/texture_" + race + "male.png");
       } catch (IOException e) {
       }
       if (texture == null) {
          try {
-            texture = _view.getTextureLoader().getTexture("res/bodyparts/texture_humanmale.png");
+            texture = view.getTextureLoader().getTexture("res/bodyparts/texture_humanmale.png");
          } catch (IOException e) {
          }
       }
-      if (_humanModel != null) {
-         _view.removeObject(_humanModel);
+      if (humanModel != null) {
+         view.removeObject(humanModel);
       }
-      _humanModel = new HumanBody(texture, _view, 1.0f/*lengthFactor*/, 1.0f/*widthFactor*/, race/*raceName*/, true/*isMale*/);
+      humanModel = new HumanBody(texture, view, 1.0f/*lengthFactor*/, 1.0f/*widthFactor*/, race/*raceName*/, true/*isMale*/);
 //      Message message = new Message();
-//      message._text = "Head";
-//      message._colorRGB = new RGB(255, 0, 0);
-//      message._visible = true;
-//      _humanModel._messages.add(message );
-      _view.addModel(_humanModel);
+//      message.text = "Head";
+//      message.colorRGB = new RGB(255, 0, 0);
+//      message.visible = true;
+//      humanModel.messages.add(message );
+      view.addModel(humanModel);
 
-      _scene._frameController.loadRace(race, texture);
+      scene.frameController.loadRace(race, texture);
 
       boolean first = true;
-      _sequence.removeAll();
-      List<AnimationSequence> sequences = SequenceLibrary._sequences;
+      sequence.removeAll();
+      List<AnimationSequence> sequences = SequenceLibrary.sequences;
       for (AnimationSequence seq : sequences) {
-         _sequence.add(seq._name);
+         sequence.add(seq.name);
          if (first) {
-            _sequence.setText(seq._name);
+            sequence.setText(seq.name);
          }
          first = false;
       }
@@ -116,57 +116,57 @@ public class AnimationController implements SelectionListener, ModifyListener
       layoutData.grabExcessVerticalSpace = true;
       groupCenter.setLayoutData(layoutData);
 
-//      _openButton = new Button(groupTop, SWT.FLAT);
-//      _openButton.setText("open");
-//      _openButton.addSelectionListener(this);
-      _saveButton = new Button(groupTop, SWT.FLAT);
-      _saveButton.setText("save");
-      _saveButton.addSelectionListener(this);
-      _race = new Combo(groupTop, SWT.NONE);
-      _race.addModifyListener(this);
+//      openButton = new Button(groupTop, SWT.FLAT);
+//      openButton.setText("open");
+//      openButton.addSelectionListener(this);
+      saveButton = new Button(groupTop, SWT.FLAT);
+      saveButton.setText("save");
+      saveButton.addSelectionListener(this);
+      race = new Combo(groupTop, SWT.NONE);
+      race.addModifyListener(this);
 
-      _sequence = new Combo(groupUpper, SWT.NONE);
-      _sequence.addSelectionListener(this);
-      _newSeqButton = new Button(groupUpper, SWT.PUSH);
-      _newSeqButton.addSelectionListener(this);
-      _newSeqButton.setText("new");
-      _deleteSeqButton = new Button(groupUpper, SWT.PUSH);
-      _deleteSeqButton.setText("delete");
-      _deleteSeqButton.addSelectionListener(this);
+      sequence = new Combo(groupUpper, SWT.NONE);
+      sequence.addSelectionListener(this);
+      newSeqButton = new Button(groupUpper, SWT.PUSH);
+      newSeqButton.addSelectionListener(this);
+      newSeqButton.setText("new");
+      deleteSeqButton = new Button(groupUpper, SWT.PUSH);
+      deleteSeqButton.setText("delete");
+      deleteSeqButton.addSelectionListener(this);
       Text repeatCountLabel = new Text(groupUpper, 0);
       repeatCountLabel.setText("Repeat Count");
       repeatCountLabel.setEditable(false);
-      _repeatCount = new Text(groupUpper, SWT.BORDER);
-      _repeatCount.setEditable(true);
-      _repeatCount.addModifyListener(this);
+      repeatCount = new Text(groupUpper, SWT.BORDER);
+      repeatCount.setEditable(true);
+      repeatCount.addModifyListener(this);
       createTable(groupCenter, 3);
 
-      _deleteFrameButton = new Button(groupCenter, SWT.PUSH);
-      _deleteFrameButton.setText("delete frame");
-      _deleteFrameButton.addSelectionListener(this);
-      _insertMedianFrameButton = new Button(groupCenter, SWT.PUSH);
-      _insertMedianFrameButton.setText("insert median frame");
-      _insertMedianFrameButton.addSelectionListener(this);
-      _copyFrameButton = new Button(groupCenter, SWT.PUSH);
-      _copyFrameButton.setText("copy frame");
-      _copyFrameButton.addSelectionListener(this);
+      deleteFrameButton = new Button(groupCenter, SWT.PUSH);
+      deleteFrameButton.setText("delete frame");
+      deleteFrameButton.addSelectionListener(this);
+      insertMedianFrameButton = new Button(groupCenter, SWT.PUSH);
+      insertMedianFrameButton.setText("insert median frame");
+      insertMedianFrameButton.addSelectionListener(this);
+      copyFrameButton = new Button(groupCenter, SWT.PUSH);
+      copyFrameButton.setText("copy frame");
+      copyFrameButton.addSelectionListener(this);
 
       helper.createLabel(groupObjects, "Left Hand:", 0, 1, null);
-      _leftHeldThingComboBox = createLeftHandCombo(groupObjects, helper);
+      leftHeldThingComboBox = createLeftHandCombo(groupObjects, helper);
       helper.createLabel(groupObjects, "", 0, 4, null);
 
       helper.createLabel(groupObjects, "Right Hand:", 0, 1, null);
-      _rightHeldThingComboBox = createRightHandCombo(groupObjects, helper);
+      rightHeldThingComboBox = createRightHandCombo(groupObjects, helper);
       helper.createLabel(groupObjects, "", 0, 4, null);
 
       helper.createLabel(groupObjects, "Armor:", 0, 1, null);
-      _armorComboBox = createArmorCombo(groupObjects, helper);
+      armorComboBox = createArmorCombo(groupObjects, helper);
       helper.createLabel(groupObjects, "", 0, 4, null);
 
       helper.createLabel(groupAssociations, "Positive", 0, 1, null);
-      _positiveAssociations = helper.createText(groupAssociations, "", true/*editable*/, 3/*hSpan*/);
+      positiveAssociations = helper.createText(groupAssociations, "", true/*editable*/, 3/*hSpan*/);
       helper.createLabel(groupAssociations, "", 0, 2, null);
-      _positiveAssociations.addModifyListener(this);
+      positiveAssociations.addModifyListener(this);
       init();
       loadRace("human");
    }
@@ -226,24 +226,24 @@ public class AnimationController implements SelectionListener, ModifyListener
    }
 
    public void createTable(Composite parent, int colSpan) {
-      _table = new Table(parent, SWT.FULL_SELECTION | SWT.BORDER);
+      table = new Table(parent, SWT.FULL_SELECTION | SWT.BORDER);
       GridData layoutData = new GridData();
       layoutData.horizontalSpan = colSpan;
       layoutData.grabExcessHorizontalSpace = true;
       layoutData.grabExcessVerticalSpace = true;
-      _table.setLayoutData(layoutData);
-      _table.setHeaderVisible(true);
-      _table.setLinesVisible(true);
-      _table.setBounds(new org.eclipse.swt.graphics.Rectangle(47, 67, 190, 70));
+      table.setLayoutData(layoutData);
+      table.setHeaderVisible(true);
+      table.setLinesVisible(true);
+      table.setBounds(new org.eclipse.swt.graphics.Rectangle(47, 67, 190, 70));
 
       String[] columnNames = new String[] { "Index", "Time", "Data"};
       for (String columnName : columnNames) {
-         TableColumn tableColumn = new TableColumn(_table, SWT.NONE);
+         TableColumn tableColumn = new TableColumn(table, SWT.NONE);
          tableColumn.setText(columnName);
       }
 
       int colIndex = 0;
-      for (TableColumn col : _table.getColumns()) {
+      for (TableColumn col : table.getColumns()) {
          if (colIndex++ < 2) {
             col.pack();
          }
@@ -251,9 +251,9 @@ public class AnimationController implements SelectionListener, ModifyListener
             col.setWidth(750);
          }
       }
-      _table.addSelectionListener(this);
+      table.addSelectionListener(this);
       for (int i = 0; i < 10; i++) {
-         TableItem row = new TableItem(_table, SWT.NONE);
+         TableItem row = new TableItem(table, SWT.NONE);
          row.setData(i);
          row.setText(new String[] { "", "", ""});
       }
@@ -262,36 +262,36 @@ public class AnimationController implements SelectionListener, ModifyListener
    public void loadSequenceIntoTable() {
       AnimationSequence seq = getCurrentAnimationSequence();
       if (seq != null) {
-         _table.removeAll();
-         for (int i = 0; i < seq._frames.size(); i++) {
-            AnimationFrame frame = seq._frames.get(i);
-            TableItem row = new TableItem(_table, SWT.NONE);
+         table.removeAll();
+         for (int i = 0; i < seq.frames.size(); i++) {
+            AnimationFrame frame = seq.frames.get(i);
+            TableItem row = new TableItem(table, SWT.NONE);
             row.setData(i);
-            row.setText(new String[] { String.valueOf(i), String.valueOf(frame._timeInMilliseconds), frame._data});
+            row.setText(new String[] {String.valueOf(i), String.valueOf(frame.timeInMilliseconds), frame.data});
          }
-         _table.select(0);
+         table.select(0);
          loadFrameSet();
       }
    }
 
    public void init() {
-      for (String race : SequenceLibrary._availableRaces) {
-         _race.add(race);
+      for (String race : SequenceLibrary.availableRaces) {
+         this.race.add(race);
       }
-      _race.setText("human");
+      race.setText("human");
       loadSequenceIntoTable();
    }
 
    public void loadFrameSet() {
-      _humanModel.clearAnimations();
-      HumanBody resetHuman = new HumanBody(null, _view, 1.0f/*lengthFactor*/, 1.0f/*widthFactor*/, _race.getText()/*raceName*/, true/*isMale*/);
-      _humanModel.setAngles(resetHuman.getAngles());
-      _humanModel.setRepeat(true);
-      _humanModel.addAnimationSequence(getCurrentAnimationSequence());
+      humanModel.clearAnimations();
+      HumanBody resetHuman = new HumanBody(null, view, 1.0f/*lengthFactor*/, 1.0f/*widthFactor*/, race.getText()/*raceName*/, true/*isMale*/);
+      humanModel.setAngles(resetHuman.getAngles());
+      humanModel.setRepeat(true);
+      humanModel.addAnimationSequence(getCurrentAnimationSequence());
    }
 
    private AnimationSequence getCurrentAnimationSequence() {
-      return SequenceLibrary.getAnimationSequenceByName(_race.getText(), _sequence.getText());
+      return SequenceLibrary.getAnimationSequenceByName(race.getText(), sequence.getText());
    }
 
    @Override
@@ -300,105 +300,105 @@ public class AnimationController implements SelectionListener, ModifyListener
 
    @Override
    public void widgetSelected(SelectionEvent e) {
-      if (e.widget == _table) {
+      if (e.widget == table) {
          if (e.item instanceof TableItem) {
             TableItem item = (TableItem) e.item;
             Integer row = (Integer) item.getData();
             AnimationSequence seq = getCurrentAnimationSequence();
             if (seq != null) {
-               AnimationFrame frame = seq._frames.get(row);
-               _scene.setStaticModelData(frame);
+               AnimationFrame frame = seq.frames.get(row);
+               scene.setStaticModelData(frame);
             }
          }
       }
-      else if (e.widget == _sequence) {
+      else if (e.widget == sequence) {
          loadSequenceIntoTable();
       }
       else if (e.widget instanceof Button) {
-//         if (e.widget == _openButton) {
+//         if (e.widget == openButton) {
 //            SequenceLibrary.openFile(e.display.getActiveShell());
-//            _sequence.removeAll();
-//            for (AnimationSequence seq : SequenceLibrary.getSequencesForRace(_race.getText())) {
+//            sequence.removeAll();
+//            for (AnimationSequence seq : SequenceLibrary.getSequencesForRace(race.getText())) {
 //               addSequence(seq);
 //            }
-//            _scene._frameController.updateKeyFrames();
+//            scene.frameController.updateKeyFrames();
 //         }
-         if (e.widget == _saveButton) {
-            SequenceLibrary.saveFile(null, _race.getText());
+         if (e.widget == saveButton) {
+            SequenceLibrary.saveFile(null, race.getText());
             //SequenceLibrary.saveToAnyFile(e.display.getActiveShell());
          }
-         else if (e.widget == _newSeqButton) {
+         else if (e.widget == newSeqButton) {
             AnimationSequence seq = getCurrentAnimationSequence();
             AnimationFrame frame = null;
             if (seq != null) {
-               int index = _table.getSelectionIndex();
+               int index = table.getSelectionIndex();
                frame = new AnimationFrame();
                if (index >= 0) {
-                  AnimationFrame sourceFrame = seq._frames.get(index);
-                  frame._data = sourceFrame._data;
+                  AnimationFrame sourceFrame = seq.frames.get(index);
+                  frame.data = sourceFrame.data;
                }
                else {
-                  frame._data = _humanModel.getAngles();
+                  frame.data = humanModel.getAngles();
                }
-               frame._timeInMilliseconds = 250;
+               frame.timeInMilliseconds = 250;
             }
             seq = new AnimationSequence();
-            NewSequenceDialog dlg = new NewSequenceDialog(e.display.getActiveShell(), _race.getText());
+            NewSequenceDialog dlg = new NewSequenceDialog(e.display.getActiveShell(), race.getText());
             String name = dlg.open();
             if (name != null) {
-               seq._name = name;
-               seq._beginKeyFrame = dlg._sequenceStartName;
-               seq._endKeyFrame = dlg._sequenceEndName;
+               seq.name = name;
+               seq.beginKeyFrame = dlg.sequenceStartName;
+               seq.endKeyFrame = dlg.sequenceEndName;
                frame = new AnimationFrame();
-               frame._data = SequenceLibrary._keyFrames.get(dlg._sequenceStartName);
-               frame._timeInMilliseconds = 250;
-               seq._frames.add(frame);
+               frame.data = SequenceLibrary.keyFrames.get(dlg.sequenceStartName);
+               frame.timeInMilliseconds = 250;
+               seq.frames.add(frame);
                frame = new AnimationFrame();
-               frame._data = SequenceLibrary._keyFrames.get(dlg._sequenceEndName);
-               frame._timeInMilliseconds = 250;
-               seq._frames.add(frame);
-               SequenceLibrary._sequences.add(seq);
-               _sequence.add(name);
+               frame.data = SequenceLibrary.keyFrames.get(dlg.sequenceEndName);
+               frame.timeInMilliseconds = 250;
+               seq.frames.add(frame);
+               SequenceLibrary.sequences.add(seq);
+               sequence.add(name);
             }
          }
-         else if (e.widget == _deleteSeqButton) {
+         else if (e.widget == deleteSeqButton) {
             AnimationSequence seq = getCurrentAnimationSequence();
             if (seq != null) {
-               SequenceLibrary._sequences.remove(seq);
-               _sequence.remove(seq._name);
-               if (_sequence.getItemCount() > 0) {
-                  _sequence.select(0);
+               SequenceLibrary.sequences.remove(seq);
+               sequence.remove(seq.name);
+               if (sequence.getItemCount() > 0) {
+                  sequence.select(0);
                }
                loadSequenceIntoTable();
             }
          }
-         else if (e.widget == _deleteFrameButton) {
+         else if (e.widget == deleteFrameButton) {
             AnimationSequence seq = getCurrentAnimationSequence();
             if (seq != null) {
-               seq._frames.remove(_table.getSelectionIndex());
+               seq.frames.remove(table.getSelectionIndex());
                loadSequenceIntoTable();
             }
          }
-         else if (e.widget == _copyFrameButton) {
+         else if (e.widget == copyFrameButton) {
             AnimationSequence seq = getCurrentAnimationSequence();
             if (seq != null) {
-               int index = _table.getSelectionIndex();
-               AnimationFrame frame = seq._frames.get(index);
+               int index = table.getSelectionIndex();
+               AnimationFrame frame = seq.frames.get(index);
                AnimationFrame copy = new AnimationFrame(frame);
-               seq._frames.add(index, copy);
+               seq.frames.add(index, copy);
                loadSequenceIntoTable();
-               _table.select(index + 1); // select the new copy
+               table.select(index + 1); // select the new copy
             }
          }
-         else if (e.widget == _insertMedianFrameButton) {
+         else if (e.widget == insertMedianFrameButton) {
             AnimationSequence seq = getCurrentAnimationSequence();
             if (seq != null) {
-               int index = _table.getSelectionIndex();
+               int index = table.getSelectionIndex();
                if (index > 0) {
-                  AnimationFrame frame0 = seq._frames.get(index - 1);
-                  AnimationFrame frame1 = seq._frames.get(index);
-                  HashMap<String, HashMap<String, Float>> data0 = HumanBody.splitAnglesTextIntoHashMap(frame0._data);
-                  HashMap<String, HashMap<String, Float>> data1 = HumanBody.splitAnglesTextIntoHashMap(frame1._data);
+                  AnimationFrame frame0 = seq.frames.get(index - 1);
+                  AnimationFrame frame1 = seq.frames.get(index);
+                  HashMap<String, HashMap<String, Float>> data0 = HumanBody.splitAnglesTextIntoHashMap(frame0.data);
+                  HashMap<String, HashMap<String, Float>> data1 = HumanBody.splitAnglesTextIntoHashMap(frame1.data);
                   HashMap<String, HashMap<String, Float>> dataAve = new HashMap<>();
                   for (String key : data0.keySet()) {
                      HashMap<String, Float> value0 = data0.get(key);
@@ -412,25 +412,25 @@ public class AnimationController implements SelectionListener, ModifyListener
                      }
                   }
                   AnimationFrame newFrame = new AnimationFrame();
-                  newFrame._data = HumanBody.combineHashMapIntoAnglesText(dataAve);
-                  newFrame._timeInMilliseconds = frame1._timeInMilliseconds / 2;
-                  frame1._timeInMilliseconds = frame1._timeInMilliseconds / 2;
-                  seq._frames.add(index, newFrame);
+                  newFrame.data = HumanBody.combineHashMapIntoAnglesText(dataAve);
+                  newFrame.timeInMilliseconds = frame1.timeInMilliseconds / 2;
+                  frame1.timeInMilliseconds = frame1.timeInMilliseconds / 2;
+                  seq.frames.add(index, newFrame);
                   loadSequenceIntoTable();
-                  _table.select(index + 1); // select the new copy
+                  table.select(index + 1); // select the new copy
                }
             }
          }
       }
-      else if (e.widget == _leftHeldThingComboBox) {
-         setHeldThing(false/*rightHand*/, _leftHeldThingComboBox.getText());
+      else if (e.widget == leftHeldThingComboBox) {
+         setHeldThing(false/*rightHand*/, leftHeldThingComboBox.getText());
       }
-      else if (e.widget == _rightHeldThingComboBox) {
-         setHeldThing(true/*rightHand*/, _rightHeldThingComboBox.getText());
+      else if (e.widget == rightHeldThingComboBox) {
+         setHeldThing(true/*rightHand*/, rightHeldThingComboBox.getText());
       }
-      else if (e.widget == _armorComboBox) {
-         _humanModel.setArmor(_armorComboBox.getText());
-         _scene._frameController._humanModel.setArmor(_armorComboBox.getText());
+      else if (e.widget == armorComboBox) {
+         humanModel.setArmor(armorComboBox.getText());
+         scene.frameController.humanModel.setArmor(armorComboBox.getText());
       }
 
    }
@@ -439,54 +439,54 @@ public class AnimationController implements SelectionListener, ModifyListener
       if ((thingName != null) && (thingName.length() > 0)) {
          try {
             Thing.Shield shield = Thing.Shield.valueOf(thingName);
-            _humanModel.setHeldThing(rightHand, shield);
-            _humanModel.setHeldThing(rightHand, (Weapon)null);
-            _scene._frameController._humanModel.setHeldThing(rightHand, shield);
-            _scene._frameController._humanModel.setHeldThing(rightHand, (Weapon)null);
+            humanModel.setHeldThing(rightHand, shield);
+            humanModel.setHeldThing(rightHand, (Weapon)null);
+            scene.frameController.humanModel.setHeldThing(rightHand, shield);
+            scene.frameController.humanModel.setHeldThing(rightHand, (Weapon)null);
             return true;
          }
          catch (Exception ex) {
             try {
                Weapon weapon = Thing.Weapon.valueOf(thingName);
-               _humanModel.setHeldThing(rightHand, weapon);
-               _humanModel.setHeldThing(rightHand, (Shield)null);
-               _scene._frameController._humanModel.setHeldThing(rightHand, (Shield)null);
-               _scene._frameController._humanModel.setHeldThing(rightHand, weapon);
+               humanModel.setHeldThing(rightHand, weapon);
+               humanModel.setHeldThing(rightHand, (Shield)null);
+               scene.frameController.humanModel.setHeldThing(rightHand, (Shield)null);
+               scene.frameController.humanModel.setHeldThing(rightHand, weapon);
                return true;
             }
             catch (Exception exc) {
             }
          }
       }
-      _humanModel.setHeldThing(rightHand, (Weapon)null);
-      _humanModel.setHeldThing(rightHand, (Shield)null);
-      _scene._frameController._humanModel.setHeldThing(rightHand, (Shield)null);
-      _scene._frameController._humanModel.setHeldThing(rightHand, (Weapon)null);
+      humanModel.setHeldThing(rightHand, (Weapon)null);
+      humanModel.setHeldThing(rightHand, (Shield)null);
+      scene.frameController.humanModel.setHeldThing(rightHand, (Shield)null);
+      scene.frameController.humanModel.setHeldThing(rightHand, (Weapon)null);
       return false;
    }
    void addSequence(AnimationSequence seq) {
-      _sequence.add(seq._name);
-      _sequence.select(_sequence.getItemCount() - 1);
+      sequence.add(seq.name);
+      sequence.select(sequence.getItemCount() - 1);
       loadSequenceIntoTable();
    }
 
    public HumanBody getModel() {
-      return _humanModel;
+      return humanModel;
    }
 
    public void setCurrentFrameModelData(AnimationFrame frame) {
       AnimationSequence seq = getCurrentAnimationSequence();
       if (seq != null) {
-         TableItem[] selectedRows = _table.getSelection();
+         TableItem[] selectedRows = table.getSelection();
          if (selectedRows.length == 1) {
-            TableItem[] allRows = _table.getItems();
+            TableItem[] allRows = table.getItems();
             for (int i = 0; i < allRows.length; i++) {
                if (selectedRows[0] == allRows[i]) {
-                  selectedRows[0].setText(new String[] { String.valueOf(i), String.valueOf(frame._timeInMilliseconds), frame._data});
-                  seq._frames.get(i)._data = frame._data;
-                  seq._frames.get(i)._timeInMilliseconds = frame._timeInMilliseconds;
-                  seq._frames.get(i)._leftFootPlanted = frame._leftFootPlanted;
-                  seq._frames.get(i)._rightFootPlanted = frame._rightFootPlanted;
+                  selectedRows[0].setText(new String[] {String.valueOf(i), String.valueOf(frame.timeInMilliseconds), frame.data});
+                  seq.frames.get(i).data = frame.data;
+                  seq.frames.get(i).timeInMilliseconds = frame.timeInMilliseconds;
+                  seq.frames.get(i).leftFootPlanted = frame.leftFootPlanted;
+                  seq.frames.get(i).rightFootPlanted = frame.rightFootPlanted;
                   loadFrameSet();
                   return;
                }
@@ -496,60 +496,60 @@ public class AnimationController implements SelectionListener, ModifyListener
    }
 
    public void clearSequences() {
-      SequenceLibrary._sequences.clear();
-      _sequence.removeAll();
+      SequenceLibrary.sequences.clear();
+      sequence.removeAll();
    }
 
    public void incrementCameraAngle(float x, float y) {
-      _view.incrementCameraAngle(x, y);
+      view.incrementCameraAngle(x, y);
    }
 
    public void drawScene(Display display) {
-      _humanModel.advanceAnimation();
+      humanModel.advanceAnimation();
 
       // Save matrix state
       GL11.glMatrixMode(GL11.GL_MODELVIEW);
       GL11.glLoadIdentity();
       //      GL11.glPushMatrix(); // (top) matrix is equivalent to identity matrix now.
       //      {
-      //         _view.useAsCurrentCanvas();
-      //         _view.setupView();
-      //         FloatBuffer headLoc = _humanModel.getHeadLocationInWindowReferenceFrame();
+      //         view.useAsCurrentCanvas();
+      //         view.setupView();
+      //         FloatBuffer headLoc = humanModel.getHeadLocationInWindowReferenceFrame();
       //         int x = (int) headLoc.get(0);
       //         int y = (int) headLoc.get(1);
       //         //int z = (int) headLoc.get(2);
-      //         _message._xLoc = x - 64;
-      //         _message._yLoc = y + 30;
+      //         message.xLoc = x - 64;
+      //         message.yLoc = y + 30;
       //         GL11.glPopMatrix();
       //      }
 
-      _view.drawScene(/*_humanModel, */display);
+      view.drawScene(/*_humanModel, */display);
 
    }
 
    public void setCameraPosition(float x, float y, float z) {
-      _view.setCameraPosition(x, y, z);
+      view.setCameraPosition(x, y, z);
    }
 
    @Override
    public void modifyText(ModifyEvent e) {
-      if (e.widget == _positiveAssociations) {
+      if (e.widget == positiveAssociations) {
          AnimationSequence seq = getCurrentAnimationSequence();
          if (seq != null) {
-            seq._positiveAttributes.clear();
-            seq._positiveAttributes.add(_positiveAssociations.getText());
+            seq.positiveAttributes.clear();
+            seq.positiveAttributes.add(positiveAssociations.getText());
          }
       }
-      else if (e.widget == _repeatCount) {
-         String value = _repeatCount.getText();
+      else if (e.widget == repeatCount) {
+         String value = repeatCount.getText();
          try {
-            _humanModel._repeatCount = Integer.parseInt(value);
+            humanModel.repeatCount = Integer.parseInt(value);
          }
          catch(Exception ex) {
          }
       }
-      else if (e.widget == _race) {
-         loadRace(_race.getText());
+      else if (e.widget == race) {
+         loadRace(race.getText());
          loadSequenceIntoTable();
       }
    }

@@ -2,7 +2,6 @@ package ostrowski.graphics.objects3d;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
@@ -20,48 +19,48 @@ import ostrowski.util.SemaphoreAutoLocker;
 
 public class Head extends BodyPart
 {
-   float                  _neckTiltForward;  // -90 is straight up, -45 is tilting head forward at 45 degrees
-   float                  _neckTiltToLeft;    //
-   float                  _neckTwist;    // + is turning head c?w
-   float                  _maxNeckTiltForward;
-   float                  _minNeckTiltForward;
-   float                  _maxNeckTiltToLeft;
-   float                  _minNeckTiltToLeft;
-   float                  _maxNeckTwist;
-   float                  _minNeckTwist;
-   float                  _rHead;
-   float                  _neckLength;
-   float                  _neckRadius;
-   float                  _neckHeight;
+   float neckTiltForward;  // -90 is straight up, -45 is tilting head forward at 45 degrees
+   float neckTiltToLeft;    //
+   float neckTwist;    // + is turning head c?w
+   float maxNeckTiltForward;
+   float minNeckTiltForward;
+   float maxNeckTiltToLeft;
+   float minNeckTiltToLeft;
+   float maxNeckTwist;
+   float minNeckTwist;
+   float rHead;
+   float neckLength;
+   float neckRadius;
+   float neckHeight;
 
-   private Thing          _armor;
-   private TexturedObject _beardObj = null;
-   private TexturedObject _hairObj  = null;
+   private Thing          armor;
+   private TexturedObject beardObj = null;
+   private TexturedObject hairObj  = null;
 
-   //private List<ArrayList<Float>> _polygons;
+   //private List<ArrayList<Float>> polygons;
    public Head(Texture texture, Texture selectedTexture, GLView glView, float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super("Head", "res/bodyparts/head.obj", false/*invertNormals*/, texture, selectedTexture, glView,
             ((2 * lengthFactor) + widthFactor) / 3f/*lengthFactor*/,
             ((2 * lengthFactor) + widthFactor) / 3f/*widthFactor*/, raceName, isMale);
 
-      _neckTiltForward = getValueByNameAsFloat("neckTiltForward");
-      _neckTiltToLeft  = getValueByNameAsFloat("neckTiltToLeft");
-      _neckTwist       = getValueByNameAsFloat("neckTwist");
-      _rHead           = getValueByNameAsFloat("rHead");
-      _neckLength      = getValueByNameAsFloat("neckLength");
-      _neckRadius      = getValueByNameAsFloat("neckRadius");
-      _neckHeight      = getValueByNameAsFloat("neckHeight");
-      _maxNeckTiltForward  = getValueByNameAsFloat("maxNeckTiltForward");
-      _minNeckTiltForward  = getValueByNameAsFloat("minNeckTiltForward");
-      _maxNeckTiltToLeft   = getValueByNameAsFloat("maxNeckTiltToLeft");
-      _minNeckTiltToLeft   = getValueByNameAsFloat("minNeckTiltToLeft");
-      _maxNeckTwist        = getValueByNameAsFloat("maxNeckTwist");
-      _minNeckTwist        = getValueByNameAsFloat("minNeckTwist");
+      neckTiltForward = getValueByNameAsFloat("neckTiltForward");
+      neckTiltToLeft = getValueByNameAsFloat("neckTiltToLeft");
+      neckTwist = getValueByNameAsFloat("neckTwist");
+      rHead = getValueByNameAsFloat("rHead");
+      neckLength = getValueByNameAsFloat("neckLength");
+      neckRadius = getValueByNameAsFloat("neckRadius");
+      neckHeight = getValueByNameAsFloat("neckHeight");
+      maxNeckTiltForward = getValueByNameAsFloat("maxNeckTiltForward");
+      minNeckTiltForward = getValueByNameAsFloat("minNeckTiltForward");
+      maxNeckTiltToLeft = getValueByNameAsFloat("maxNeckTiltToLeft");
+      minNeckTiltToLeft = getValueByNameAsFloat("minNeckTiltToLeft");
+      maxNeckTwist = getValueByNameAsFloat("maxNeckTwist");
+      minNeckTwist = getValueByNameAsFloat("minNeckTwist");
 
-      _neckLength *= lengthFactor;
-      _neckHeight *= lengthFactor;
-      _rHead      *= widthFactor;
-      _neckRadius *= widthFactor;
+      neckLength *= lengthFactor;
+      neckHeight *= lengthFactor;
+      rHead *= widthFactor;
+      neckRadius *= widthFactor;
       if (glView == null) {
          return;
       }
@@ -90,13 +89,13 @@ public class Head extends BodyPart
          }
          if (hasHair) {
             // add the hair
-            _hairObj = new HairObject("hair", "res/bodyparts/malehair1.obj", _invertNormals, hairTexture, hairTexture, glView, _lengthFactor, _widthFactor,
-                                      raceName, isMale);
+            hairObj = new HairObject("hair", "res/bodyparts/malehair1.obj", invertNormals, hairTexture, hairTexture, glView, this.lengthFactor, this.widthFactor,
+                                     raceName, isMale);
          }
          // add the beard, if needed:
          if ((raceName != null) && raceName.equalsIgnoreCase("Dwarf")) {
-            _beardObj = new HairObject("beard", "res/bodyparts/beard1.obj", _invertNormals, hairTexture, hairTexture, glView, _lengthFactor, _widthFactor,
-                                       raceName, isMale);
+            beardObj = new HairObject("beard", "res/bodyparts/beard1.obj", invertNormals, hairTexture, hairTexture, glView, this.lengthFactor, this.widthFactor,
+                                      raceName, isMale);
          }
       } catch (IOException e) {
       }
@@ -104,28 +103,28 @@ public class Head extends BodyPart
 
    @Override
    public void validateRanges() {
-      if (_neckTwist < _minNeckTwist) {
-         _neckTwist = _minNeckTwist; // can't turn too far left
+      if (neckTwist < minNeckTwist) {
+         neckTwist = minNeckTwist; // can't turn too far left
       }
-      else if (_neckTwist > _maxNeckTwist)
+      else if (neckTwist > maxNeckTwist)
        {
-         _neckTwist = _maxNeckTwist; // or too far right
+         neckTwist = maxNeckTwist; // or too far right
       }
 
-      if (_neckTiltToLeft < _minNeckTiltToLeft) {
-         _neckTiltToLeft = _minNeckTiltToLeft; // can't turn too far left
+      if (neckTiltToLeft < minNeckTiltToLeft) {
+         neckTiltToLeft = minNeckTiltToLeft; // can't turn too far left
       }
-      else if (_neckTiltToLeft > _maxNeckTiltToLeft)
+      else if (neckTiltToLeft > maxNeckTiltToLeft)
        {
-         _neckTiltToLeft = _maxNeckTiltToLeft; // or too far right
+         neckTiltToLeft = maxNeckTiltToLeft; // or too far right
       }
 
-      if (_neckTiltForward < _minNeckTiltForward) {
-         _neckTiltForward = _minNeckTiltForward; // can't tilt too far back
+      if (neckTiltForward < minNeckTiltForward) {
+         neckTiltForward = minNeckTiltForward; // can't tilt too far back
       }
-      else if (_neckTiltForward > _maxNeckTiltForward)
+      else if (neckTiltForward > maxNeckTiltForward)
        {
-         _neckTiltForward = _maxNeckTiltForward; // can't tilt head too far forward.
+         neckTiltForward = maxNeckTiltForward; // can't tilt head too far forward.
       }
    }
 
@@ -136,35 +135,35 @@ public class Head extends BodyPart
       {
          bindToTexture();
          // rotate about the back center of the neck
-         //GL11.glTranslatef(0f, _neckLength * 2 / 3, -_neckHeight);
-         GL11.glRotatef(_neckTiltForward, 1.0f, 0.0f, 0.0f);
-         GL11.glRotatef(_neckTiltToLeft, 0.0f, 0.0f, 1.0f);
-         GL11.glRotatef(_neckTwist, 0.0f, 0f, 1.0f);
-         //drawSphere(_neckRadius, _facesCount, _facesCount);
+         //GL11.glTranslatef(0f, neckLength * 2 / 3, -_neckHeight);
+         GL11.glRotatef(neckTiltForward, 1.0f, 0.0f, 0.0f);
+         GL11.glRotatef(neckTiltToLeft, 0.0f, 0.0f, 1.0f);
+         GL11.glRotatef(neckTwist, 0.0f, 0f, 1.0f);
+         //drawSphere(neckRadius, facesCount, facesCount);
          // restore center of neck translation
-         //GL11.glTranslatef(0.0f, -_neckLength * 2 / 3, _neckHeight);
-         for (ObjModel model : _models) {
+         //GL11.glTranslatef(0.0f, -neckLength * 2 / 3, neckHeight);
+         for (ObjModel model : models) {
             model.render(glView, messages);
          }
 
          // If there is armor, don't draw the hair
-         if (_armor != null) {
-            _armor.render(glView, messages);
+         if (armor != null) {
+            armor.render(glView, messages);
          }
-         else if (_hairObj != null) {
-            _hairObj.render(glView, messages);
+         else if (hairObj != null) {
+            hairObj.render(glView, messages);
          }
 
-         synchronized (_children) {
-            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(_lock_children)) {
-               for (TexturedObject child : _children) {
+         synchronized (children) {
+            try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_children)) {
+               for (TexturedObject child : children) {
                   child.render(glView, messages);
                }
             }
          }
 
-         if (_beardObj != null) {
-            _beardObj.render(glView, messages);
+         if (beardObj != null) {
+            beardObj.render(glView, messages);
          }
 
          //GL11.glEnd();
@@ -176,13 +175,13 @@ public class Head extends BodyPart
    @Override
    public void setAnglesFromMap(HashMap<String, Float> angleMap) {
       if (angleMap.containsKey("t")) {
-         _neckTiltForward = angleMap.get("f");
+         neckTiltForward = angleMap.get("f");
       }
       if (angleMap.containsKey("s")) {
-         _neckTiltToLeft = angleMap.get("s");
+         neckTiltToLeft = angleMap.get("s");
       }
       if (angleMap.containsKey("t")) {
-         _neckTwist = angleMap.get("t");
+         neckTwist = angleMap.get("t");
       }
       validateRanges();
    }
@@ -190,9 +189,9 @@ public class Head extends BodyPart
    @Override
    public HashMap<String, Float> getAnglesMap() {
       HashMap<String, Float> anglesMap = new HashMap<>();
-      anglesMap.put("f", _neckTiltForward);
-      anglesMap.put("s", _neckTiltToLeft);
-      anglesMap.put("t", _neckTwist);
+      anglesMap.put("f", neckTiltForward);
+      anglesMap.put("s", neckTiltToLeft);
+      anglesMap.put("t", neckTwist);
       return anglesMap;
    }
 
@@ -206,7 +205,7 @@ public class Head extends BodyPart
       GL11.glPushMatrix();
       {
          // rotate about the back center of the neck
-         GL11.glTranslatef(0f, _neckLength, -_neckHeight + (_rHead * 4));
+         GL11.glTranslatef(0f, neckLength, -neckHeight + (rHead * 4));
          results = projectToWindowLocation();
          GL11.glPopMatrix();
       }
@@ -215,10 +214,10 @@ public class Head extends BodyPart
 
    public void setArmor(Armor armor) {
       try {
-         _armor = new Thing(armor, this.getClass().getSimpleName(), _glView, _invertNormals, _lengthFactor, _widthFactor);
+         this.armor = new Thing(armor, this.getClass().getSimpleName(), glView, invertNormals, lengthFactor, widthFactor);
       } catch (IOException e) {
          // this happens if the requested armor doesn't have a piece for this bodypart
-         _armor = null;
+         this.armor = null;
       }
    }
 

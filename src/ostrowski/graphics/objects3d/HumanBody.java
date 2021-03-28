@@ -29,29 +29,33 @@ public class HumanBody extends BodyPart
 {
    // Cannot start w/ all joint angles at 0;
    // results in no movement...
-   private final Pelvis                                  _pelvis;
-   private final Torso                                   _torso;
+   private final Pelvis pelvis;
+   private final Torso  torso;
 
-   private Tuple3                                  _locationOffset         = new Tuple3(0, 0, 0);
-   public Tuple3                                   _positionOffset         = new Tuple3(0, 51f, 0);
-   public float                                    _twistOffset            = 0;
-   private float                                   _facingOffset           = 0;
-   public float                                    _tiltForward            = 0;
-   public float                                    _tiltSide               = 0;
+   private Tuple3 locationOffset = new Tuple3(0, 0, 0);
+   public  Tuple3 positionOffset = new Tuple3(0, 51f, 0);
+   public  float  twistOffset    = 0;
+   private float  facingOffset   = 0;
+   public  float  tiltForward    = 0;
+   public  float  tiltSide       = 0;
 
-   HashMap<String, TexturedObject>                 _parts                  = new HashMap<>();
+   HashMap<String, TexturedObject> parts = new HashMap<>();
 
-   private HashMap<String, HashMap<String, Float>> _origPos                = null;
-   private HashMap<String, HashMap<String, Float>> _nextPos                = null;
-   private final List<AnimationFrame>               _pendingAnimationFrames = new ArrayList<>();
-   private AnimationFrame                          _nextFrame              = null;
+   private       HashMap<String, HashMap<String, Float>> origPos                = null;
+   private       HashMap<String, HashMap<String, Float>> nextPos                = null;
+   private final List<AnimationFrame>                    pendingAnimationFrames = new ArrayList<>();
+   private       AnimationFrame                          nextFrame              = null;
 
-   private long                                    _origPosTime            = -1;
-   private long                                    _nextPosTime            = -1;
-   private boolean                                 _repeat                 = false;
+   private long    origPosTime = -1;
+   private long    nextPosTime = -1;
+   private boolean repeat      = false;
 
-   private int                                     _animationFrameSequence = 0;
-   public  Position                                _pos;
+   private int           animationFrameSequence = 0;
+   public  Position      pos;
+   public  List<Message> messages               = new ArrayList<>();
+   public  int           repeatCount            = 1;
+
+   static String delimiter = "|";
 
    public enum Position {
       Standing, Sitting, Crouching, Kneeling, LayingOnBack, LayingOnFront
@@ -59,60 +63,60 @@ public class HumanBody extends BodyPart
 
    public HumanBody(Texture texture, GLView glView, float lengthFactor, float widthFactor, String raceName, boolean isMale) {
       super("Body", null/*modelResourceName*/, false/*invertNormals*/, texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _pelvis = new Pelvis(texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
-      _torso = new Torso(texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
+      pelvis = new Pelvis(texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
+      torso = new Torso(texture, texture, glView, lengthFactor, widthFactor, raceName, isMale);
       List<TexturedObject> parts = new ArrayList<>();
       getParts(parts);
       for (TexturedObject part : parts) {
-         _parts.put(part.getName(), part);
+         this.parts.put(part.getName(), part);
       }
-      _raceName = raceName;
-      if (_raceName != null) {
-         HashMap<Class <? extends BodyPart>, HashMap<String, Object>> valuesByClass = _valuesByNameByClassByRace.get(_raceName);
+      this.raceName = raceName;
+      if (this.raceName != null) {
+         HashMap<Class <? extends BodyPart>, HashMap<String, Object>> valuesByClass = valuesByNameByClassByRace.get(this.raceName);
          if (valuesByClass == null) {
-            valuesByClass = _valuesByNameByClassByRace.get("human");
+            valuesByClass = valuesByNameByClassByRace.get("human");
          }
          HashMap<String, Object> valuesByName = valuesByClass.get(HumanBody.class);
-         _tiltForward = (Float) valuesByName.get("tiltForward");
+         tiltForward = (Float) valuesByName.get("tiltForward");
       }
-      _parts.put("Body", this);
+      this.parts.put("Body", this);
    }
 
    public FloatBuffer getHeadLocationInWindowReferenceFrame() {
       FloatBuffer results;
       GL11.glPushMatrix();
       {
-         GL11.glTranslatef(_locationOffset.getX(), _locationOffset.getY(), _locationOffset.getZ());
-         GL11.glRotatef(_facingOffset, 0f, 1f, 0f);
-         GL11.glTranslatef(_positionOffset.getX(), _positionOffset.getY(), _positionOffset.getZ());
-         GL11.glRotatef(_twistOffset, 0f, 1f, 0f);
-         GL11.glRotatef(_tiltSide, 0f, 0f, 1f);
-         GL11.glRotatef(_tiltForward, 1f, 0f, 0f);
-         results = _torso.getHeadLocationInWindowReferenceFrame();
+         GL11.glTranslatef(locationOffset.getX(), locationOffset.getY(), locationOffset.getZ());
+         GL11.glRotatef(facingOffset, 0f, 1f, 0f);
+         GL11.glTranslatef(positionOffset.getX(), positionOffset.getY(), positionOffset.getZ());
+         GL11.glRotatef(twistOffset, 0f, 1f, 0f);
+         GL11.glRotatef(tiltSide, 0f, 0f, 1f);
+         GL11.glRotatef(tiltForward, 1f, 0f, 0f);
+         results = torso.getHeadLocationInWindowReferenceFrame();
       }
       GL11.glPopMatrix();
       return results;
    }
 
    FloatBuffer getToeLocation(boolean rightFoot) {
-      FloatBuffer toeLocationIn2d = _pelvis.getToeLocationInWindowReferenceFrame(rightFoot);
+      FloatBuffer toeLocationIn2d = pelvis.getToeLocationInWindowReferenceFrame(rightFoot);
       return BodyPart.unProjectFromWindowLocation(toeLocationIn2d);
    }
 
    public Tuple3 getToeLocationIn3DReferenceFrame(boolean rightFoot) {
-      Tuple3 location = _pelvis.getChildLocationIn3DReferenceFrame(rightFoot, 4);
-      location = location.add(_positionOffset);
-      location = location.rotate(0, _facingOffset, 0);
-      location = location.add(_locationOffset);
-      location = location.rotate(_tiltForward, 0, _tiltSide);
-      location = location.rotate(0, _twistOffset, 0);
+      Tuple3 location = pelvis.getChildLocationIn3DReferenceFrame(rightFoot, 4);
+      location = location.add(positionOffset);
+      location = location.rotate(0, facingOffset, 0);
+      location = location.add(locationOffset);
+      location = location.rotate(tiltForward, 0, tiltSide);
+      location = location.rotate(0, twistOffset, 0);
       return location;
    }
 
    @Override
    public void validateRanges() {
-      _pelvis.validateRanges();
-      _torso.validateRanges();
+      pelvis.validateRanges();
+      torso.validateRanges();
    }
 
    @Override
@@ -122,22 +126,22 @@ public class HumanBody extends BodyPart
       // Must bind the texture BEFORE we call glBegin(...)
       GL11.glPushMatrix();
       {
-         if (_opacity != 1f) {
-            GL11.glColor4f(1f, 1f, 1f, _opacity);
+         if (opacity != 1f) {
+            GL11.glColor4f(1f, 1f, 1f, opacity);
          }
          //GL11.glColor3f(1.0f, 1.0f, 1.0f);
 
-         GL11.glTranslatef(_locationOffset.getX(), _locationOffset.getY(), _locationOffset.getZ());
-         GL11.glRotatef(_facingOffset, 0f, 1f, 0f);
-         GL11.glTranslatef(_positionOffset.getX(), _positionOffset.getY(), _positionOffset.getZ());
-         GL11.glRotatef(_twistOffset, 0f, 1f, 0f);
-         GL11.glRotatef(_tiltSide, 0f, 0f, 1f);
-         GL11.glRotatef(_tiltForward, 1f, 0f, 0f);
+         GL11.glTranslatef(locationOffset.getX(), locationOffset.getY(), locationOffset.getZ());
+         GL11.glRotatef(facingOffset, 0f, 1f, 0f);
+         GL11.glTranslatef(positionOffset.getX(), positionOffset.getY(), positionOffset.getZ());
+         GL11.glRotatef(twistOffset, 0f, 1f, 0f);
+         GL11.glRotatef(tiltSide, 0f, 0f, 1f);
+         GL11.glRotatef(tiltForward, 1f, 0f, 0f);
 
          // build lower body
-         _pelvis.render(glView, messages);
+         pelvis.render(glView, messages);
          // upper body
-         _torso.render(glView, messages);
+         torso.render(glView, messages);
       }
       GL11.glPopMatrix();
 
@@ -153,25 +157,25 @@ public class HumanBody extends BodyPart
          }
       }
 
-      if (_opacity != 1f) {
+      if (opacity != 1f) {
          GL11.glColor4f(1f, 1f, 1f, 1f);
       }
 
       // set the location of any messages based on the current head position in 2D
-      if ((_messages != null) && (_messages.size() > 0)) {
+      if ((this.messages != null) && (this.messages.size() > 0)) {
          FloatBuffer headLoc = getHeadLocationInWindowReferenceFrame();
          int x = (int) headLoc.get(0);
          int y = (int) headLoc.get(1);
          int z = (int) headLoc.get(2);
-         if (glView._font != null) {
-            for (Message message : _messages) {
+         if (glView.font != null) {
+            for (Message message : this.messages) {
                // Window reference frame uses y=0 at the bottom.
                // When we draw text, y=0 is at the top, so subtract y from the window height.
-               message._xLoc = x;
-               message._yLoc = y;
-               message._zLoc = z;
+               message.xLoc = x;
+               message.yLoc = y;
+               message.zLoc = z;
 
-               if ((message._text != null) && (message._text.length() > 0) && message._visible) {
+               if ((message.text != null) && (message.text.length() > 0) && message.visible) {
                   messages.add(message);
                }
             }
@@ -179,21 +183,16 @@ public class HumanBody extends BodyPart
       }
    }
 
-   public List<Message> _messages = new ArrayList<>();
-   public int _repeatCount = 1;
-
-   static String             delimiter = "|";
-
    public String getAngles() {
       StringBuilder sb = new StringBuilder();
       boolean first1 = true;
-      Set<String> keys = _parts.keySet();
+      Set<String> keys = parts.keySet();
       SortedSet<String> sortedKeys = new TreeSet<>(keys);
       for (String name : sortedKeys) {
          if (!first1) {
             sb.append("|");
          }
-         TexturedObject child = _parts.get(name);
+         TexturedObject child = parts.get(name);
          if (child instanceof BodyPart) {
             BodyPart part = (BodyPart) child;
             sb.append(name).append(';');
@@ -215,7 +214,7 @@ public class HumanBody extends BodyPart
    public void setAngles(String text) {
       HashMap<String, HashMap<String, Float>> map = splitAnglesTextIntoHashMap(text);
       for (String name : map.keySet()) {
-         TexturedObject child = _parts.get(name);
+         TexturedObject child = parts.get(name);
          if (child instanceof BodyPart) {
             BodyPart part = (BodyPart) child;
             part.setAnglesFromMap(map.get(name));
@@ -227,13 +226,13 @@ public class HumanBody extends BodyPart
    @Override
    public void setAnglesFromMap(HashMap<String, Float> angleMap) {
       if (angleMap.containsKey("f")) {
-         _tiltForward = angleMap.get("f");
+         tiltForward = angleMap.get("f");
       }
       if (angleMap.containsKey("s")) {
-         _tiltSide = angleMap.get("s");
+         tiltSide = angleMap.get("s");
       }
       if (angleMap.containsKey("t")) {
-         _twistOffset = angleMap.get("t");
+         twistOffset = angleMap.get("t");
       }
       validateRanges();
    }
@@ -241,9 +240,9 @@ public class HumanBody extends BodyPart
    @Override
    public HashMap<String, Float> getAnglesMap() {
       HashMap<String, Float> anglesMap = new HashMap<>();
-      anglesMap.put("f", _tiltForward);
-      anglesMap.put("s", _tiltSide);
-      anglesMap.put("t", _twistOffset);
+      anglesMap.put("f", tiltForward);
+      anglesMap.put("s", tiltSide);
+      anglesMap.put("t", twistOffset);
       return anglesMap;
    }
 
@@ -300,82 +299,82 @@ public class HumanBody extends BodyPart
 
    public void addAnimationSequence(AnimationSequence seq) {
       if (seq != null) {
-         for (int i = 0; i < seq._frames.size(); i++) {
-            addAnimationFrame(seq._frames.get(i));
+         for (int i = 0; i < seq.frames.size(); i++) {
+            addAnimationFrame(seq.frames.get(i));
          }
       }
    }
 
    private void addAnimationFrame(AnimationFrame frame) {
-      _pendingAnimationFrames.add(frame);
+      pendingAnimationFrames.add(frame);
    }
 
    public void setRepeat(boolean repeat) {
-      _repeat = repeat;
+      this.repeat = repeat;
    }
 
    public boolean advanceAnimation() {
-      if ((_origPos == null) || (_nextPos == null) || (_origPosTime == -1) || (_nextPosTime == -1)) {
-         if (_pendingAnimationFrames.size() == 0)
+      if ((origPos == null) || (nextPos == null) || (origPosTime == -1) || (nextPosTime == -1)) {
+         if (pendingAnimationFrames.size() == 0)
           {
             return false; // no more frames, terminate the animation
          }
       }
 
       long now = System.currentTimeMillis();
-      if (now > _nextPosTime) {
-         if (_pendingAnimationFrames.size() <= 0) {
-            _origPos = _nextPos = null;
-            _origPosTime = _nextPosTime = -1;
+      if (now > nextPosTime) {
+         if (pendingAnimationFrames.size() <= 0) {
+            origPos = nextPos = null;
+            origPosTime = nextPosTime = -1;
             setHeightBasedOnLowestLimbPoint();
             return false; // no more frames, terminate the animation
          }
-         AnimationFrame curFrame = _nextFrame;
-         _nextFrame = _pendingAnimationFrames.remove(0);
-         if (_repeat) {
-            _pendingAnimationFrames.add(_nextFrame);
+         AnimationFrame curFrame = nextFrame;
+         nextFrame = pendingAnimationFrames.remove(0);
+         if (repeat) {
+            pendingAnimationFrames.add(nextFrame);
          }
 
-         _animationFrameSequence++;
-         if (_animationFrameSequence >= (_pendingAnimationFrames.size() * _repeatCount) ) {
-            _positionOffset = new Tuple3(0, 0, 0);
-            _animationFrameSequence = 0;
+         animationFrameSequence++;
+         if (animationFrameSequence >= (pendingAnimationFrames.size() * repeatCount) ) {
+            positionOffset = new Tuple3(0, 0, 0);
+            animationFrameSequence = 0;
          }
 
          if (curFrame == null) {
-            _origPos = splitAnglesTextIntoHashMap(getAngles());
+            origPos = splitAnglesTextIntoHashMap(getAngles());
          }
          else {
-            _origPos = splitAnglesTextIntoHashMap(curFrame._data);
+            origPos = splitAnglesTextIntoHashMap(curFrame.data);
          }
-         _nextPos = splitAnglesTextIntoHashMap(_nextFrame._data);
-         _origPosTime = System.currentTimeMillis();
-         _nextPosTime = _origPosTime + _nextFrame._timeInMilliseconds;
+         nextPos = splitAnglesTextIntoHashMap(nextFrame.data);
+         origPosTime = System.currentTimeMillis();
+         nextPosTime = origPosTime + nextFrame.timeInMilliseconds;
       }
 
       Tuple3 toeLocBefore = null;
       Tuple3 toeLocAfter = null;
-      if (_nextFrame._rightFootPlanted) {
+      if (nextFrame.rightFootPlanted) {
          toeLocBefore = getToeLocationIn3DReferenceFrame(true/*rightFoot*/);
-         //         _coreLocX = 50 + rightToeLocBefore.get(0);
+         //         coreLocX = 50 + rightToeLocBefore.get(0);
       }
-      else if (_nextFrame._leftFootPlanted) {
+      else if (nextFrame.leftFootPlanted) {
          toeLocBefore = getToeLocationIn3DReferenceFrame(false/*rightFoot*/);
-         //         _coreLocX = 50 + leftToeLocBefore.get(0);
+         //         coreLocX = 50 + leftToeLocBefore.get(0);
       }
 
-      long duration = _nextPosTime - _origPosTime;
-      long into = now - _origPosTime;
+      long duration = nextPosTime - origPosTime;
+      long into = now - origPosTime;
       float percentAlong = ((float) into) / duration;
 
-      for (String name : _parts.keySet()) {
-         TexturedObject child = _parts.get(name);
+      for (String name : parts.keySet()) {
+         TexturedObject child = parts.get(name);
          if (child instanceof BodyPart) {
             BodyPart part = (BodyPart) child;
-            HashMap<String, Float> originalPos = _origPos.get(name);
-            HashMap<String, Float> nextPos = _nextPos.get(name);
+            HashMap<String, Float> originalPos = origPos.get(name);
+            HashMap<String, Float> nextPos = this.nextPos.get(name);
             // Some BodyParts will not have any movement,
-            // and they may not be present in the _nextPos HashMap
+            // and they may not be present in the nextPos HashMap
             if ((originalPos == null) || (nextPos == null)) {
                continue;
             }
@@ -397,16 +396,16 @@ public class HumanBody extends BodyPart
          }
       }
 
-      if (_nextFrame._rightFootPlanted) {
+      if (nextFrame.rightFootPlanted) {
          toeLocAfter = getToeLocationIn3DReferenceFrame(true/*rightFoot*/);
       }
-      else if (_nextFrame._leftFootPlanted) {
+      else if (nextFrame.leftFootPlanted) {
          toeLocAfter = getToeLocationIn3DReferenceFrame(false/*rightFoot*/);
       }
       if ((toeLocBefore != null) && (toeLocAfter != null)) {
          Tuple3 movement = toeLocAfter.subtract(toeLocBefore);
          if (movement.magnitude() != 0) {
-            _positionOffset = _positionOffset.subtract(movement);
+            positionOffset = positionOffset.subtract(movement);
          }
       }
       //else {
@@ -418,16 +417,16 @@ public class HumanBody extends BodyPart
    }
 
    public void clearAnimations() {
-      _origPos = _nextPos = null;
-      _origPosTime = _nextPosTime = -1;
-      _pendingAnimationFrames.clear();
-      _positionOffset = new Tuple3(0, 0, 0);
+      origPos = nextPos = null;
+      origPosTime = nextPosTime = -1;
+      pendingAnimationFrames.clear();
+      positionOffset = new Tuple3(0, 0, 0);
       setHeightBasedOnLowestLimbPoint();
-      _animationFrameSequence = 0;
+      animationFrameSequence = 0;
    }
 
    public BodyPart getBodyPart(String partName) {
-      TexturedObject child = _parts.get(partName);
+      TexturedObject child = parts.get(partName);
       if (child instanceof BodyPart) {
          return (BodyPart) child;
       }
@@ -445,14 +444,14 @@ public class HumanBody extends BodyPart
          case Standing:      posKeyFrameName = "Ready_Sword_Shield"; break;
       }
       if (setKeyFrame(posKeyFrameName)) {
-         _pos = pos;
+         this.pos = pos;
       }
    }
    public boolean setKeyFrame(String posKeyFrameName) {
       if (posKeyFrameName == null) {
          return false;
       }
-      String angles = SequenceLibrary._keyFrames.get(posKeyFrameName);
+      String angles = SequenceLibrary.keyFrames.get(posKeyFrameName);
       if (angles != null) {
          setAngles(angles);
          setHeightBasedOnLowestLimbPoint();
@@ -462,11 +461,11 @@ public class HumanBody extends BodyPart
    }
 
    public void setHeldThing(boolean rightHand, Shield shield) {
-      _torso.setHeldThing(rightHand, shield);
+      torso.setHeldThing(rightHand, shield);
    }
 
    public void setHeldThing(boolean rightHand, Weapon weapon) {
-      _torso.setHeldThing(rightHand, weapon);
+      torso.setHeldThing(rightHand, weapon);
    }
 
    public void setHeldThing(boolean rightHand, String heldThingNameIn) {
@@ -538,41 +537,41 @@ public class HumanBody extends BodyPart
                armor = Armor.PlateMail;
          }
       }
-      _pelvis.setArmor(armor);
-      _torso.setArmor(armor);
+      pelvis.setArmor(armor);
+      torso.setArmor(armor);
    }
 
    public void setOpacity(float opacity) {
-      _opacity = opacity;
-      //      for (TexturedObject child : _parts.values()) {
-      //         child._opacity = opacity;
+      this.opacity = opacity;
+      //      for (TexturedObject child : parts.values()) {
+      //         child.opacity = opacity;
       //      }
    }
 
    public void removeArm(boolean rightArm) {
-      _torso.removeArm(rightArm);
+      torso.removeArm(rightArm);
    }
 
    public void removeLeg(boolean rightLeg) {
-      _pelvis.removeLeg(rightLeg);
+      pelvis.removeLeg(rightLeg);
    }
 
    public List<Tuple3> setHeightBasedOnLowestLimbPoint() {
       List<Tuple3> points = new ArrayList<>();
       for (int i = 0; i <= 4; i++) {
-         points.add(_pelvis.getChildLocationIn3DReferenceFrame(true/*rightFoot*/, i));
-         points.add(_pelvis.getChildLocationIn3DReferenceFrame(false/*rightFoot*/, i));
-         points.add(_torso.getChildLocationIn3DReferenceFrame(true/*rightArm*/, i));
-         points.add(_torso.getChildLocationIn3DReferenceFrame(false/*rightArm*/, i));
+         points.add(pelvis.getChildLocationIn3DReferenceFrame(true/*rightFoot*/, i));
+         points.add(pelvis.getChildLocationIn3DReferenceFrame(false/*rightFoot*/, i));
+         points.add(torso.getChildLocationIn3DReferenceFrame(true/*rightArm*/, i));
+         points.add(torso.getChildLocationIn3DReferenceFrame(false/*rightArm*/, i));
       }
       float minY = 0;
       boolean firstItem = true;
 
       List<Tuple3> adjustedPoints = new ArrayList<>();
       for (Tuple3 point : points) {
-         point = point.rotate(_tiltForward, 0f, 0f);
-         point = point.rotate(0f, 0f, _tiltSide);
-         point = point.rotate(0f, _twistOffset, 0f);
+         point = point.rotate(tiltForward, 0f, 0f);
+         point = point.rotate(0f, 0f, tiltSide);
+         point = point.rotate(0f, twistOffset, 0f);
 
          if (firstItem || (point.getY() < minY)) {
             minY = point.getY();
@@ -580,12 +579,12 @@ public class HumanBody extends BodyPart
          firstItem = false;
          adjustedPoints.add(point);
       }
-      _positionOffset = new Tuple3(_positionOffset.getX(), 2-minY, _positionOffset.getZ());
+      positionOffset = new Tuple3(positionOffset.getX(), 2 - minY, positionOffset.getZ());
       points.clear();
       for (Tuple3 point : adjustedPoints) {
-         point = point.add(_positionOffset);
-         point = point.rotate(0f, _facingOffset, 0f);
-         point = point.add(_locationOffset);
+         point = point.add(positionOffset);
+         point = point.rotate(0f, facingOffset, 0f);
+         point = point.add(locationOffset);
          points.add(point);
       }
       return points;
@@ -593,33 +592,33 @@ public class HumanBody extends BodyPart
 
    @Override
    public void getParts(List<TexturedObject> parts) {
-      _pelvis.getParts(parts);
-      _torso.getParts(parts);
+      pelvis.getParts(parts);
+      torso.getParts(parts);
    }
 
    public TexturedObject getModelHand(boolean rightSide) {
-      return _torso.getModelHand(rightSide);
+      return torso.getModelHand(rightSide);
    }
    public TexturedObject getModelLeg(boolean rightSide) {
-      return _pelvis.getModelLeg(rightSide);
+      return pelvis.getModelLeg(rightSide);
    }
    public TexturedObject getModelHead() {
-      return _torso.getModelHead();
+      return torso.getModelHead();
    }
    public TexturedObject getModelTail() {
-      return _pelvis.getModelTail();
+      return pelvis.getModelTail();
    }
    public TexturedObject getModelWing(boolean rightSide) {
-      return _torso.getModelWing(rightSide);
+      return torso.getModelWing(rightSide);
    }
 
    public void setFacing(int facing) {
-      _facingOffset = (facing * -60f) + 180f;
+      facingOffset = (facing * -60f) + 180f;
    }
 
    public void setLocationOffset(Tuple3 center) {
-      _locationOffset = new Tuple3(center.getX(), center.getY(), center.getZ());
-      _positionOffset = new Tuple3(0, 0, 0);
+      locationOffset = new Tuple3(center.getX(), center.getY(), center.getZ());
+      positionOffset = new Tuple3(0, 0, 0);
       setHeightBasedOnLowestLimbPoint();
    }
 
