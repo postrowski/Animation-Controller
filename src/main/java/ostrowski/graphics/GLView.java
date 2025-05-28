@@ -7,6 +7,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.opengl.GLCanvas;
@@ -16,11 +17,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.util.glu.GLU;
+import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.system.MemoryStack;
 
 import ostrowski.graphics.model.ISelectionWatcher;
 import ostrowski.graphics.model.Message;
@@ -38,6 +43,7 @@ import ostrowski.graphics.texture.TextureLoader;
 import ostrowski.util.AnimationControllerSemaphore;
 import ostrowski.util.Semaphore;
 import ostrowski.util.SemaphoreAutoLocker;
+import ostrowski.util.Util;
 
 public class GLView implements Listener
 {
@@ -104,6 +110,10 @@ public class GLView implements Listener
       GLData data = new GLData();
       data.doubleBuffer = true;
       glCanvas = new GLCanvas(parent, SWT.NONE, data);
+
+      glCanvas.setCurrent();
+      GL.createCapabilities();
+
       glCanvas.addListener(SWT.Resize, this);
       //_GlCanvas.addListener(SWT.Paint, this);
       glCanvas.addListener(SWT.MouseDown, this);
@@ -145,8 +155,8 @@ public class GLView implements Listener
             font = new BitmapFont(fontTexture, 32 /*characterWidth*/, 32/*characterHeight*/);
 
             Texture controlsTexture = textureLoader.getTexture("res/viewControls.png");
-            zoomButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 0, 123, 49));
-            elevationButtons = new ButtonImage(controlsTexture, new org.lwjgl.util.Rectangle(0, 50, 49, 91));
+            zoomButtons = new ButtonImage(controlsTexture, new Rectangle(0, 0, 123, 49));
+            elevationButtons = new ButtonImage(controlsTexture, new Rectangle(0, 50, 49, 91));
          } catch (IOException e) {
          }
       }
@@ -259,58 +269,58 @@ public class GLView implements Listener
    }
 
    public boolean useAsCurrentCanvas() {
-      if (glCanvas == null) {
-         return false;
-      }
-      String threadName = Thread.currentThread().getName();
-      if (!threadName.equals("main")) {
-         return false;
-      }
-      if (glCanvas.isDisposed()) {
-         return false;
-      }
-      glCanvas.setCurrent();
-      try {
-         GLContext.useContext(glCanvas);
-         return true;
-      } catch (LWJGLException e) {
-         e.printStackTrace();
-         return false;
-      }
+       if (glCanvas == null || glCanvas.isDisposed()) {
+           return false;
+       }
+
+       if (!Thread.currentThread().getName().equals("main")) {
+           return false;
+       }
+
+       glCanvas.setCurrent(); // Sets this canvas as current for the current thread
+
+       // Create GL capabilities if not already created on this thread
+       GLCapabilities caps = GL.getCapabilities();
+       if (caps == null || !caps.OpenGL20) { // or some version check
+           GL.createCapabilities();
+       }
+
+       return true;
    }
 
    /**
-    * Defint the light setup to view the scene
+    * Define the light setup to view the scene
     */
    public void defineLight(float xScale) {
+     try (MemoryStack stack = MemoryStack.stackPush()) {
+         FloatBuffer ambient = stack.floats(0.0f, 0.2f, 0.2f, 0.2f);
+         FloatBuffer diffuse = stack.floats(1.0f, 1.0f, 1.0f, 1.0f);
+         FloatBuffer position = stack.floats(-200.0f, 800.0f, 1300.0f * xScale, 0.0f);
 
-//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT,  BufferUtils.createFloatBuffer(4).put(1).put(1).put(1).put(1).flip());
-//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE,  BufferUtils.createFloatBuffer(4).put(1).put(1).put(1).put(1).flip());
-//      GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, BufferUtils.createFloatBuffer(4).put(10f*xScale).put(10f).put(5f).put(0).flip());// set up the position of the light
-//      GL11.glDisable(GL11.GL_LIGHT0);
-
-      { // configure light sources:
-         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_AMBIENT,        BufferUtils.createFloatBuffer(4).put(0.0f).put(0.2f).put(0.2f).put(0.2f).flip()); // Setup The Ambient Light
-         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_DIFFUSE,        BufferUtils.createFloatBuffer(4).put(1.0f).put(1.0f).put(1.0f).put(1.0f).flip()); // Setup The Diffuse Light
-         GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION,       BufferUtils.createFloatBuffer(4).put(-200.0f).put(800.0f).put(1300.0f * xScale).put(0f).flip()); // Position The Light (w=0 => directional source, not a positional source)
+         GL11.glLightfv(GL11.GL_LIGHT1, GL11.GL_AMBIENT, ambient);
+         GL11.glLightfv(GL11.GL_LIGHT1, GL11.GL_DIFFUSE, diffuse);
+         GL11.glLightfv(GL11.GL_LIGHT1, GL11.GL_POSITION, position);
          GL11.glEnable(GL11.GL_LIGHT1);
-      }
-   }
-   public void defineMaterial() {
-      // setup the ambient light
-      GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, BufferUtils.createFloatBuffer(4).put(0.8f).put(0.8f).put(0.8f).put(0.8f).flip());
-      GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
+     }
+ }
 
-      GL11.glEnable(GL11.GL_LIGHTING);
-      // setup the material:
-      GL11.glEnable(GL11.GL_COLOR_MATERIAL);
-      GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT_AND_DIFFUSE);
-      GL11.glPolygonMode(GL11.GL_FRONT_FACE, GL11.GL_AMBIENT_AND_DIFFUSE);
+ public void defineMaterial() {
+     try (MemoryStack stack = MemoryStack.stackPush()) {
+         FloatBuffer globalAmbient = stack.floats(0.8f, 0.8f, 0.8f, 0.8f);
+         FloatBuffer materialColor = stack.floats(1f, 1f, 1f, 1f);
 
-      material.put(1).put(1).put(1).put(1);
-      material.flip();
-      GL11.glMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE, material);
-      GL11.glMaterial(GL11.GL_BACK, GL11.GL_DIFFUSE, material);
+         GL11.glLightModelfv(GL11.GL_LIGHT_MODEL_AMBIENT, globalAmbient);
+         GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
+
+         GL11.glEnable(GL11.GL_LIGHTING);
+         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+         GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT_AND_DIFFUSE);
+
+         // NOTE: Removed incorrect glPolygonMode call.
+
+         GL11.glMaterialfv(GL11.GL_FRONT, GL11.GL_DIFFUSE, materialColor);
+         GL11.glMaterialfv(GL11.GL_BACK, GL11.GL_DIFFUSE, materialColor);
+     }
    }
 
    public void setCameraPosition(float x, float y, float z) {
@@ -428,24 +438,34 @@ public class GLView implements Listener
    }
 
    private void zoom(int zoomInOut, Display display) {
-      if (zoomInOut == 0) {
+     if (zoomInOut == 0) {
          zoomPower = 0;
-      }
-      else {
+     } else {
          zoomPower += zoomInOut;
          zoomPower = Math.max(zoomPower, MIN_ZOOM_POWER);
          zoomPower = Math.min(zoomPower, MAX_ZOOM_POWER);
-      }
-      fieldOfViewYangle = (float) (DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, zoomPower));
+     }
 
-      useAsCurrentCanvas();
-      GL11.glMatrixMode(GL11.GL_PROJECTION);
-      GL11.glLoadIdentity();
-      GLU.gluPerspective(fieldOfViewYangle, aspectRatio, zNear, zFar);
-      GL11.glMatrixMode(GL11.GL_MODELVIEW);
-      GL11.glLoadIdentity();
-      drawScene(display);
-   }
+     fieldOfViewYangle = (float) (DEFAULT_FIELD_OF_VIEW * Math.pow(0.8, zoomPower));
+
+     useAsCurrentCanvas();
+
+     // Compute perspective matrix using JOML
+     Matrix4f projection = new Matrix4f().perspective((float) Math.toRadians(fieldOfViewYangle),
+                                                      aspectRatio, zNear, zFar);
+
+     // Load matrix into OpenGL
+     FloatBuffer projBuffer = BufferUtils.createFloatBuffer(16);
+     projection.get(projBuffer);
+
+     GL11.glMatrixMode(GL11.GL_PROJECTION);
+     GL11.glLoadMatrixf(projBuffer);
+
+     GL11.glMatrixMode(GL11.GL_MODELVIEW);
+     GL11.glLoadIdentity();
+
+     drawScene(display);
+ }
 
    @Override
    public void handleEvent(Event event) {
@@ -594,29 +614,37 @@ public class GLView implements Listener
                   GL11.glLoadIdentity();
                   GL11.glPushMatrix(); // (top) matrix is equivalent to identity matrix now.
                   {
-                     useAsCurrentCanvas();
-                     cameraPosition = initialMouseDownCameraPosition;
-                     setupView();
-                     FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
-                     GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix);
+                    useAsCurrentCanvas();
+                    cameraPosition = initialMouseDownCameraPosition;
+                    setupView();  // assumes this loads matrices via glLoadMatrixf or similar
 
-                     FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
-                     GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projMatrix);
+                    FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
+                    GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, modelMatrix); // if using compatibility profile
 
-                     IntBuffer viewport = BufferUtils.createIntBuffer(16);
-                     GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
+                    FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
+                    GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, projMatrix);
 
-                     Tuple3 newMouseWorldPos = GetWorldPositionAtScreenLocAndWorldYPos(screenLoc, mouseDownPosWorldCoordinates.getY(), modelMatrix,
-                                                                                       projMatrix, viewport);
-                     Tuple3 movementSinceMouseDown = newMouseWorldPos.subtract(mouseDownPosWorldCoordinates);
-                     cameraPosition = initialMouseDownCameraPosition.add(movementSinceMouseDown);
+                    IntBuffer viewport = BufferUtils.createIntBuffer(16);
+                    GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
 
-                     cameraPosition = new Tuple3(Math.min(-minOccupiedPosition.getX(), Math.max(cameraPosition.getX(), -maxOccupiedPosition.getZ())),
-                                                 cameraPosition.getY(),
-                                                 Math.min(-minOccupiedPosition.getX(), Math.max(cameraPosition.getZ(), -maxOccupiedPosition.getZ()))
-                                                  );
-                     GL11.glPopMatrix();
-                     //System.out.println("camera now at " + cameraPosition.toString());
+                    Tuple3 newMouseWorldPos = GetWorldPositionAtScreenLocAndWorldYPos(
+                        screenLoc,
+                        mouseDownPosWorldCoordinates.getY(),
+                        modelMatrix,
+                        projMatrix,
+                        viewport
+                    );
+
+                    Tuple3 movementSinceMouseDown = newMouseWorldPos.subtract(mouseDownPosWorldCoordinates);
+                    cameraPosition = initialMouseDownCameraPosition.add(movementSinceMouseDown);
+
+                    cameraPosition = new Tuple3(
+                        Math.min(-minOccupiedPosition.getX(), Math.max(cameraPosition.getX(), -maxOccupiedPosition.getZ())),
+                        cameraPosition.getY(),
+                        Math.min(-minOccupiedPosition.getX(), Math.max(cameraPosition.getZ(), -maxOccupiedPosition.getZ()))
+                    );
+
+                    GL11.glPopMatrix();
                   }
                   // drag complete
                   drawScene(event.display);
@@ -624,21 +652,39 @@ public class GLView implements Listener
                }
             }
             else if ((buttonDown == BUTTON_PAN) && (mouseDownPosScreenCoordinates != null)) {
-               if (allowPan) {
-                  float dx = mouseDownPosScreenCoordinates.getX() - screenLoc.getX();
-                  float dy = mouseDownPosScreenCoordinates.getY() - screenLoc.getY();
-                  mouseDownPosScreenCoordinates = screenLoc;
-                  yRot -= (fieldOfViewYangle * dy) / height;
-                  xRot -= (fieldOfViewYangle * aspectRatio * dx) / width;
+              if (allowPan) {
+                float dx = mouseDownPosScreenCoordinates.getX() - screenLoc.getX();
+                float dy = mouseDownPosScreenCoordinates.getY() - screenLoc.getY();
+                mouseDownPosScreenCoordinates = screenLoc;
 
-                  for (IGLViewListener listener : listeners) {
-                     listener.viewAngleChanged((float)((xRot * Math.PI) / 180), (float)((yRot * Math.PI) / 180));
-                  }
-                  GLU.gluPerspective(fieldOfViewYangle, aspectRatio, zNear, zFar);
-                  // pan complete
-                  drawScene(event.display);
-                  return;
-               }
+                yRot -= (fieldOfViewYangle * dy) / height;
+                xRot -= (fieldOfViewYangle * aspectRatio * dx) / width;
+
+                for (IGLViewListener listener : listeners) {
+                    listener.viewAngleChanged(
+                        (float) Math.toRadians(xRot),
+                        (float) Math.toRadians(yRot)
+                    );
+                }
+
+                useAsCurrentCanvas();
+
+                // Recalculate projection matrix
+                Matrix4f projection = new Matrix4f()
+                    .perspective((float) Math.toRadians(fieldOfViewYangle), aspectRatio, zNear, zFar);
+
+                FloatBuffer projBuffer = BufferUtils.createFloatBuffer(16);
+                projection.get(projBuffer);
+
+                GL11.glMatrixMode(GL11.GL_PROJECTION);
+                GL11.glLoadMatrixf(projBuffer);
+
+                GL11.glMatrixMode(GL11.GL_MODELVIEW);
+                GL11.glLoadIdentity();
+
+                drawScene(event.display);
+                return;
+              }
             }
             if ((buttonDown != 0) || watchMouseMove) {
                GL11.glLoadIdentity();
@@ -784,9 +830,6 @@ public class GLView implements Listener
 
    private class WorldCoordinatesResults
    {
-      public WorldCoordinatesResults() {
-      }
-
       public TexturedObject object                       = null; // texturedObjectClickedUpon
       public double         angleFromCenter              = 0;   // texturedObjectClickedUponAngleFromCenter
       public double         normalizedDistanceFromCenter = 0;   // texturedObjectClickedUponNormalizedDistanceFromCenter
@@ -794,138 +837,231 @@ public class GLView implements Listener
    }
 
    private WorldCoordinatesResults findWorldCoordinatedForScreenLocation(Tuple2 screenLoc) {
-      WorldCoordinatesResults results = new WorldCoordinatesResults();
+     WorldCoordinatesResults results = new WorldCoordinatesResults();
 
-      FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix);
+     // Load matrices
+     FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
+     GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, modelMatrixBuffer);
+     modelMatrixBuffer.rewind();
+     Matrix4f modelMatrix = new Matrix4f().set(modelMatrixBuffer);
 
-      FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projMatrix);
+     FloatBuffer projMatrixBuffer = BufferUtils.createFloatBuffer(16);
+     GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, projMatrixBuffer);
+     projMatrixBuffer.rewind();
+     Matrix4f projMatrix = new Matrix4f().set(projMatrixBuffer);
 
-      IntBuffer viewport = BufferUtils.createIntBuffer(16);
-      GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
+     // Load viewport
+     IntBuffer viewportBuffer = BufferUtils.createIntBuffer(16);
+     GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewportBuffer);
+     viewportBuffer.rewind();
+     int[] viewport = new int[4];
+     viewportBuffer.get(viewport);
 
-      Tuple2 invertedScreenLoc = new Tuple2(screenLoc.getX(), viewport.get(3) - screenLoc.getY());
-      Tuple3 lowestZObjectLocationInScreenCoordinated = null;
-      //long startTime = System.currentTimeMillis();
+     // Convert screen coordinates
+     Tuple2 invertedScreenLoc = new Tuple2(screenLoc.getX(), viewport[3] - screenLoc.getY());
+     Tuple3 lowestZObjectLocationInScreenCoordinates = null;
 
-      synchronized (models) {
+     // Find closest object under the cursor
+     synchronized (models) {
          try (SemaphoreAutoLocker sal = new SemaphoreAutoLocker(lock_models)) {
-            for (TexturedObject model : models) {
-               Tuple3 objectLocationInWindowCoords = model.getScreenPosition3dContainingScreenPoint(invertedScreenLoc, modelMatrix, projMatrix, viewport);
-               if (objectLocationInWindowCoords != null) {
-                  if (objectLocationInWindowCoords.getZ() > 0) {
-                     if ((lowestZObjectLocationInScreenCoordinated == null)
-                              || (objectLocationInWindowCoords.getZ() < lowestZObjectLocationInScreenCoordinated.getZ())) {
-                        lowestZObjectLocationInScreenCoordinated = objectLocationInWindowCoords;
-                        results.object = model;
+             for (TexturedObject model : models) {
+                 Tuple3 screenPos = model.getScreenPosition3dContainingScreenPoint(
+                     invertedScreenLoc, modelMatrixBuffer, projMatrixBuffer, viewportBuffer);
+                 if (screenPos != null && screenPos.getZ() > 0) {
+                     if (lowestZObjectLocationInScreenCoordinates == null ||
+                         screenPos.getZ() < lowestZObjectLocationInScreenCoordinates.getZ()) {
+                         lowestZObjectLocationInScreenCoordinates = screenPos;
+                         results.object = model;
                      }
-                  }
-               }
-            }
+                 }
+             }
          }
-      }
-      //long duration = System.currentTimeMillis() - startTime;
-      //startTime = System.currentTimeMillis();
-      //System.out.println("findWorldCoordinatedForScreenLocation point #1 took " + duration + "ms. (" + models.size() + " models)");
+     }
 
-      if (results.object != null) {
-         FloatBuffer clickPosInWorldCoordsBuffer = BufferUtils.createFloatBuffer(3);
-         GLU.gluUnProject(lowestZObjectLocationInScreenCoordinated.getX(), lowestZObjectLocationInScreenCoordinated.getY(),
-                          lowestZObjectLocationInScreenCoordinated.getZ(), modelMatrix, projMatrix, viewport, clickPosInWorldCoordsBuffer);
-         Tuple3 clickPosInWorldCoords = new Tuple3(clickPosInWorldCoordsBuffer);
+     if (results.object != null && lowestZObjectLocationInScreenCoordinates != null) {
+         Vector3f screenCoords = new Vector3f(
+             lowestZObjectLocationInScreenCoordinates.getX(),
+             lowestZObjectLocationInScreenCoordinates.getY(),
+             lowestZObjectLocationInScreenCoordinates.getZ()
+         );
+
+         Vector3f worldCoords = new Vector3f();
+         projMatrix
+             .mul(modelMatrix, new Matrix4f())
+             .unproject(screenCoords, viewport, worldCoords);
+
+         Tuple3 clickPosInWorldCoords = new Tuple3(worldCoords.x, worldCoords.y, worldCoords.z);
          Tuple3 objCenter = results.object.getObjectCenter();
          Tuple3 delta = objCenter.subtract(clickPosInWorldCoords);
+
          results.angleFromCenter = Math.atan2(delta.getZ(), delta.getX());
-         double distanceFromCenter = Math.sqrt((delta.getX() * delta.getX()) + (delta.getZ() * delta.getZ()));
+
+         double distanceFromCenter = Math.sqrt(delta.getX() * delta.getX() + delta.getZ() * delta.getZ());
          Tuple3 objectBoundingDimensions = results.object.getObjectBoundingCubeDimensions();
-         double flatObjectRadius = Math.sqrt((objectBoundingDimensions.getX() * objectBoundingDimensions.getX()) + (objectBoundingDimensions.getZ()
-                                             * objectBoundingDimensions.getZ()));
+         double flatObjectRadius = Math.sqrt(
+             objectBoundingDimensions.getX() * objectBoundingDimensions.getX() +
+             objectBoundingDimensions.getZ() * objectBoundingDimensions.getZ());
          results.normalizedDistanceFromCenter = distanceFromCenter / (flatObjectRadius / 2);
-         //duration = System.currentTimeMillis() - startTime;
-         //startTime = System.currentTimeMillis();
-         //System.out.println("findWorldCoordinatedForScreenLocation point #2 took " + duration + "ms.");
-      }
-      if (lowestZObjectLocationInScreenCoordinated != null) {
-         FloatBuffer objectPosition3d = BufferUtils.createFloatBuffer(3);
-         GLU.gluUnProject(lowestZObjectLocationInScreenCoordinated.getX(), lowestZObjectLocationInScreenCoordinated.getY(),
-                          lowestZObjectLocationInScreenCoordinated.getZ(), modelMatrix, projMatrix, viewport, objectPosition3d);
-         results.worldCoordinates = new Tuple3(objectPosition3d.get(0), objectPosition3d.get(1), objectPosition3d.get(2));
-         //duration = System.currentTimeMillis() - startTime;
-         //startTime = System.currentTimeMillis();
-         //System.out.println("findWorldCoordinatedForScreenLocation point #3 took " + duration + "ms.");
-      }
-      return results;
-   }
+
+         results.worldCoordinates = clickPosInWorldCoords;
+     }
+
+     return results;
+ }
 
    public FloatBuffer GetOGLPos(int x, int y) {
-      FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix);
+     // Get modelview matrix
+     FloatBuffer modelMatrixBuffer = BufferUtils.createFloatBuffer(16);
+     GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, modelMatrixBuffer);
+     modelMatrixBuffer.rewind();
+     Matrix4f modelMatrix = new Matrix4f().set(modelMatrixBuffer);
 
-      FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projMatrix);
+     // Get projection matrix
+     FloatBuffer projMatrixBuffer = BufferUtils.createFloatBuffer(16);
+     GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, projMatrixBuffer);
+     projMatrixBuffer.rewind();
+     Matrix4f projMatrix = new Matrix4f().set(projMatrixBuffer);
 
-      IntBuffer viewport = BufferUtils.createIntBuffer(16);
-      GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
+     // Get viewport
+     IntBuffer viewportBuffer = BufferUtils.createIntBuffer(16);
+     GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewportBuffer);
+     viewportBuffer.rewind();
+     int[] viewport = new int[4];
+     viewportBuffer.get(viewport);
 
-      float winX = x;
-      float winY = (float) viewport.get(3) - (float) y;
-      ByteBuffer winZ = BufferUtils.createByteBuffer(1);
-      GL11.glReadPixels(x, (int) winY, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, winZ);
+     // Convert window y coordinate (OpenGL's y=0 is bottom)
+     float winX = (float) x;
+     float winY = (float) (viewport[3] - y);
 
-      FloatBuffer win_pos = BufferUtils.createFloatBuffer(3);
-      GLU.gluUnProject(winX, winY, winZ.get(0), modelMatrix, projMatrix, viewport, win_pos);
-      return win_pos;
+     // Read depth value at window x,y
+     FloatBuffer depthBuffer = BufferUtils.createFloatBuffer(1);
+     GL11.glReadPixels(x, (int) winY, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, depthBuffer);
+     depthBuffer.rewind();
+     float winZ = depthBuffer.get();
+
+     // Compose screen coordinates vector
+     Vector3f screenCoords = new Vector3f(winX, winY, winZ);
+
+     // Compose combined matrix: projection * modelview
+     Matrix4f combinedMatrix = new Matrix4f();
+     projMatrix.mul(modelMatrix, combinedMatrix);
+
+     // Unproject to get world coordinates
+     Vector3f worldCoords = Util.unproject(screenCoords, modelMatrix, projMatrix, viewport);
+
+     // Put result into FloatBuffer to return (x, y, z)
+     FloatBuffer objPos = BufferUtils.createFloatBuffer(3);
+     objPos.put(worldCoords.x).put(worldCoords.y).put(worldCoords.z);
+     objPos.flip();
+
+     return objPos;
+ }
+
+
+   public Tuple3 GetWorldPositionAtScreenLocAndWorldYPos(
+       Tuple2 screenPos,
+       float worldPosY,
+       FloatBuffer modelMatrixBuffer,
+       FloatBuffer projMatrixBuffer,
+       IntBuffer viewportBuffer) {
+
+       // Convert FloatBuffers to JOML Matrix4f
+       modelMatrixBuffer.rewind();
+       Matrix4f modelMatrix = new Matrix4f().set(modelMatrixBuffer);
+
+       projMatrixBuffer.rewind();
+       Matrix4f projMatrix = new Matrix4f().set(projMatrixBuffer);
+
+       // Compose combined projection * modelview matrix
+       Matrix4f combinedMatrix = new Matrix4f();
+       projMatrix.mul(modelMatrix, combinedMatrix);
+
+       // Convert viewport IntBuffer to int[]
+       viewportBuffer.rewind();
+       int[] viewport = new int[4];
+       viewportBuffer.get(viewport);
+
+       // Screen coordinates (OpenGL bottom-left origin)
+       float winX = screenPos.getX();
+       float winY = viewport[3] - screenPos.getY();
+
+       // Prepare two screen points at different depths (use Z in [0,1] range)
+       // Note: gluUnProject uses normalized device coords for depth (0 = near plane, 1 = far plane)
+       // Your original depths are negative (-0.8, -0.4), which is unusual.
+       // Typically, depth should be between 0 and 1, so adjust accordingly:
+       // If you want to map from NDC depth to window depth, negative values won't work.
+       // I'll assume you want to unproject at two depths between near and far planes, e.g. 0.2 and 0.6
+       float depth1 = 0.2f;
+       float depth2 = 0.6f;
+
+       Vector3f screenPoint1 = new Vector3f(winX, winY, depth1);
+       Vector3f screenPoint2 = new Vector3f(winX, winY, depth2);
+
+       // Unproject points to world coordinates
+       Vector4f dest1 = new Vector4f();
+       combinedMatrix.unproject(screenPoint1, viewport, dest1);
+       Vector3f worldPoint1 = new Vector3f(dest1.x, dest1.y, dest1.z);
+       
+       Vector4f dest2 = new Vector4f();
+       combinedMatrix.unproject(screenPoint2, viewport, dest2);
+       Vector3f worldPoint2 = new Vector3f(dest2.x, dest2.y, dest2.z);
+
+       // Compute parametric interpolation parameter A for line where y = worldPosY
+       // the parametric form of the line starts with A=0 at point1, A=1 at point2
+       // x = x1 + A(x2-x1)
+       // y = y1 + A(y2-y1)
+       // z = z1 + A(z2-z1)
+       // first, find the A where y = worldPosY.
+       // worldPozY = y1 + A(y2-y1)
+       // worldPozY - y1 = A(y2-y1)
+       // A(y2-y1) = worldPosY - y1
+       // A = (worldPosY - y1) / (y2-y1)
+       float A = (worldPosY - worldPoint1.y) / (worldPoint2.y - worldPoint1.y);
+
+       // Linear interpolate x and z
+       float worldPosX = worldPoint1.x + A * (worldPoint2.x - worldPoint1.x);
+       float worldPosZ = worldPoint1.z + A * (worldPoint2.z - worldPoint1.z);
+
+       return new Tuple3(worldPosX, worldPosY, worldPosZ);
    }
 
-   public Tuple3 GetWorldPositionAtScreenLocAndWorldYPos(Tuple2 screenPos, float worldPosY, FloatBuffer modelMatrix, FloatBuffer projMatrix, IntBuffer viewport) {
-      float winX = screenPos.getX();
-      float winY = viewport.get(3) - screenPos.getY();
-      FloatBuffer win_pos1 = BufferUtils.createFloatBuffer(3);
-      FloatBuffer win_pos2 = BufferUtils.createFloatBuffer(3);
-      GLU.gluUnProject(winX, winY, -0.8f, modelMatrix, projMatrix, viewport, win_pos1);
-      GLU.gluUnProject(winX, winY, -0.4f, modelMatrix, projMatrix, viewport, win_pos2);
+   public Vector3f GetWorldPositionAtScreenLocAndWorldDistance(Vector2f screenPos, float distanceFromCamera, FloatBuffer modelMatrix, FloatBuffer projMatrix,
+                                                               IntBuffer viewport) {
+  // Prepare matrices
+     Matrix4f model = new Matrix4f();
+     model.set(modelMatrix);
+     Matrix4f proj = new Matrix4f();
+     proj.set(projMatrix);
 
-      Tuple3 worldLineEndpoint1 = new Tuple3(win_pos1.get(0), win_pos1.get(1), win_pos1.get(2));
-      Tuple3 worldLineEndpoint2 = new Tuple3(win_pos2.get(0), win_pos2.get(1), win_pos2.get(2));
-      // the parametric form of the line starts with A=0 at point1, A=1 at point2
-      // x = x1 + A(x2-x1)
-      // y = y1 + A(y2-y1)
-      // z = z1 + A(z2-z1)
-      // first, find the A where y = worldPosY.
-      // worldPozY = y1 + A(y2-y1)
-      // worldPozY - y1 = A(y2-y1)
-      // A(y2-y1) = worldPosY - y1
-      // A = (worldPosY - y1) / (y2-y1)
-      float A = (worldPosY - worldLineEndpoint1.getY()) / (worldLineEndpoint2.getY() - worldLineEndpoint1.getY());
-      float worldPosX = worldLineEndpoint1.getX() + (A * (worldLineEndpoint2.getX() - worldLineEndpoint1.getX()));
-      float worldPosZ = worldLineEndpoint1.getZ() + (A * (worldLineEndpoint2.getZ() - worldLineEndpoint1.getZ()));
-      return new Tuple3(worldPosX, worldPosY, worldPosZ);
-   }
+     // Convert IntBuffer to int[]
+     int[] viewportArray = new int[4];
+     viewport.get(viewportArray);
+     viewport.rewind(); // optional: rewind if caller reuses the buffer
 
-   public Tuple3 GetWorldPositionAtScreenLocAndWorldDistance(Tuple2 screenPos, float distanceFromCamera, FloatBuffer modelMatrix, FloatBuffer projMatrix,
-                                                             IntBuffer viewport) {
-      float winX = screenPos.getX();
-      float winY = viewport.get(3) - screenPos.getY();
-      FloatBuffer win_pos1 = BufferUtils.createFloatBuffer(3);
-      FloatBuffer win_pos2 = BufferUtils.createFloatBuffer(3);
-      GLU.gluUnProject(winX, winY, -0.9f, modelMatrix, projMatrix, viewport, win_pos1);
-      GLU.gluUnProject(winX, winY, -0.8f, modelMatrix, projMatrix, viewport, win_pos2);
+     float winX = screenPos.x;
+     float winY = viewportArray[3] - screenPos.y; // Flip Y axis
 
-      Tuple3 worldLineEndpoint1 = new Tuple3(win_pos1.get(0), win_pos1.get(1), win_pos1.get(2));
-      Tuple3 worldLineEndpoint2 = new Tuple3(win_pos2.get(0), win_pos2.get(1), win_pos2.get(2));
+     // Unproject two points at different depths
+     Vector3f winCoords1 = new Vector3f(winX, winY, 0.1f);
+     Vector3f winCoords2 = new Vector3f(winX, winY, 0.2f);
+
+     Vector3f worldLineEndpoint1 = Util.unproject(winCoords1, model, proj, viewportArray);
+     Vector3f worldLineEndpoint2 = Util.unproject(winCoords2, model, proj, viewportArray);
+
+     if (worldLineEndpoint1 == null || worldLineEndpoint2 == null) return null;
+
       // the parametric form of the line starts with A=0 at point1, A=1 at point2
       // x = x1 + A(x2-x1)
       // y = y1 + A(y2-y1)
       // z = z1 + A(z2-z1)
       // dist = x*x + y*y + z*z
       // dist = (x1 + Adx) * (x1 + Adx) + (y1 + Ady) * (y1 + Ady) + (z1 + Adz) * (z1 + Adz)
-      float dx = (worldLineEndpoint2.getX() - worldLineEndpoint1.getX());
-      float dy = (worldLineEndpoint2.getY() - worldLineEndpoint1.getY());
-      float dz = (worldLineEndpoint2.getZ() - worldLineEndpoint1.getZ());
-      float x1 = worldLineEndpoint1.getX();
-      float y1 = worldLineEndpoint1.getY();
-      float z1 = worldLineEndpoint1.getZ();
+      float dx = (worldLineEndpoint2.x - worldLineEndpoint1.x);
+      float dy = (worldLineEndpoint2.y - worldLineEndpoint1.y);
+      float dz = (worldLineEndpoint2.z - worldLineEndpoint1.z);
+      float x1 = worldLineEndpoint1.x;
+      float y1 = worldLineEndpoint1.y;
+      float z1 = worldLineEndpoint1.z;
       // solve for A:
       // dist = (x1*x1 + 2*Adx*x1 + Adx*Adx) + (y1*y1 + 2*Ady*y1 + Ady*Ady) + (z1*z1 + 2*Adz*z1 + Adz*Adz)
       // dist = x1*x1 + y1*y1 + z1*z1 + 2*Adx*x1 + 2*Ady*y1 + 2*Adz*z1 + Adx*Adx + Ady*Ady + Adz*Adz
@@ -941,10 +1077,10 @@ public class GLView implements Listener
       float A1 = (float) ((-b - Math.sqrt((b * b) - (4 * a * c))) / (2 * a));
       //float A2 = (float) (0 - (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a));
       float A = A1; // TODO: how do we know which one to use????
-      float worldPosX = worldLineEndpoint1.getX() + (A * (worldLineEndpoint2.getX() - worldLineEndpoint1.getX()));
-      float worldPosY = worldLineEndpoint1.getY() + (A * (worldLineEndpoint2.getY() - worldLineEndpoint1.getY()));
-      float worldPosZ = worldLineEndpoint1.getZ() + (A * (worldLineEndpoint2.getZ() - worldLineEndpoint1.getZ()));
-      return new Tuple3(worldPosX, worldPosY, worldPosZ);
+      float worldPosX = worldLineEndpoint1.x + (A * (worldLineEndpoint2.x - worldLineEndpoint1.x));
+      float worldPosY = worldLineEndpoint1.y + (A * (worldLineEndpoint2.y - worldLineEndpoint1.y));
+      float worldPosZ = worldLineEndpoint1.z + (A * (worldLineEndpoint2.z - worldLineEndpoint1.z));
+      return new Vector3f(worldPosX, worldPosY, worldPosZ);
    }
 
    private static int getDistSquared(int x1, int y1, int x2, int y2) {
@@ -952,35 +1088,41 @@ public class GLView implements Listener
    }
 
    public void resizeCanvas() {
-      Rectangle bounds = glCanvas.getBounds();
-      width = bounds.width;
-      height = bounds.height;
-      if (zoomButtons != null) {
-         zoomLeft = width - zoomButtons.getWidth() - 10;
-         zoomTop = height - zoomButtons.getHeight() - 10;
-      }
-      if (elevationButtons != null) {
-         elevationLeft = width - elevationButtons.getWidth() - 10;
-         elevationTop = zoomTop - elevationButtons.getHeight();
-      }
-      if (width == 0) {
-         width = 800;
-      }
-      if (height == 0) {
-         height = 600;
-      }
-      aspectRatio = ((float) width) / height;
+    Rectangle bounds = glCanvas.getBounds();
+    width = bounds.width;
+    height = bounds.height;
 
-      if (!useAsCurrentCanvas()) {
-         return;
-      }
-      GL11.glViewport(0, 0, width, height);
-      GL11.glMatrixMode(GL11.GL_PROJECTION);
-      GL11.glLoadIdentity();
-      GLU.gluPerspective(fieldOfViewYangle, aspectRatio, zNear, zFar);
-      GL11.glMatrixMode(GL11.GL_MODELVIEW);
-      GL11.glLoadIdentity();
-   }
+    if (width == 0) width = 800;
+    if (height == 0) height = 600;
+
+    aspectRatio = (float) width / height;
+
+    if (zoomButtons != null) {
+        zoomLeft = width - zoomButtons.getWidth() - 10;
+        zoomTop = height - zoomButtons.getHeight() - 10;
+    }
+    if (elevationButtons != null) {
+        elevationLeft = width - elevationButtons.getWidth() - 10;
+        elevationTop = zoomTop - elevationButtons.getHeight();
+    }
+
+    if (!useAsCurrentCanvas()) return;
+
+    GL11.glViewport(0, 0, width, height);
+
+    GL11.glMatrixMode(GL11.GL_PROJECTION);
+    GL11.glLoadIdentity();
+
+    Matrix4f projection = new Matrix4f()
+        .perspective((float) Math.toRadians(fieldOfViewYangle), aspectRatio, zNear, zFar);
+
+    FloatBuffer fb = BufferUtils.createFloatBuffer(16);
+    projection.get(fb);
+    GL11.glLoadMatrixf(fb);
+
+    GL11.glMatrixMode(GL11.GL_MODELVIEW);
+    GL11.glLoadIdentity();
+}
 
    /**
     * Enter the orthographic mode by first recording the current state,

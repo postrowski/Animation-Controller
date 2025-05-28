@@ -1,7 +1,8 @@
 package ostrowski.graphics.texture;
 
+import org.eclipse.swt.graphics.Rectangle;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.Rectangle;
+
 
 /**
  * A simple implementation of fonts in OpenGL. All this actually
@@ -49,10 +50,10 @@ public class ButtonImage
          float textureWidth = texture.getImageWidth();
          float textureHeight = texture.getImageHeight();
 
-         float textureLeft = (textureBounds.getX()) / textureWidth;
-         float textureBottom = textureHeight - (textureBounds.getY()) / textureHeight;
-         float textureRight = (textureBounds.getX() + textureBounds.getWidth()) / textureWidth;
-         float textureTop = textureHeight - (textureBounds.getY() + textureBounds.getHeight()) / textureHeight;
+         float textureLeft = (textureBounds.x) / textureWidth;
+         float textureBottom = textureHeight - (textureBounds.y) / textureHeight;
+         float textureRight = (textureBounds.x + textureBounds.width) / textureWidth;
+         float textureTop = textureHeight - (textureBounds.y + textureBounds.height) / textureHeight;
 
          // setup the quad
          GL11.glTexCoord2f(textureLeft, textureBottom);
@@ -74,11 +75,11 @@ public class ButtonImage
    }
 
    public int getWidth() {
-      return textureBounds.getWidth();
+      return textureBounds.width;
    }
 
    public int getHeight() {
-      return textureBounds.getHeight();
+      return textureBounds.height;
    }
 
    public boolean containsPoint(int x, int y) {

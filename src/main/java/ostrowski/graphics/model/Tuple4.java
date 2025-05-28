@@ -3,9 +3,8 @@ package ostrowski.graphics.model;
 import java.nio.FloatBuffer;
 
 /**
- * A simple tuple of 3 elements. A tuple is a set of values that relate
- * to each other in some way. In this case its a set of 3 so it might
- * represent a vertex or normal in 3D space.
+ * A simple tuple of 4 elements. A tuple is a set of values that relate
+ * to each other in some way.
  *
  */
 public class Tuple4 {

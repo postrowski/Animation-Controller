@@ -9,11 +9,11 @@
     <version>1.0</version>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lwjgl.version>3.3.1</lwjgl.version>
+        <lwjgl.version>3.3.6</lwjgl.version>
         <lwjgl.natives>natives-windows</lwjgl.natives>
     </properties>
 
@@ -30,31 +30,25 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Project-specific -->
         <dependency>
             <groupId>ostrowski.util</groupId>
             <artifactId>OstrowskiUtil</artifactId>
             <version>1.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.core</groupId>
             <artifactId>commands</artifactId>
             <version>3.3.0-I20070605-0010</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.eclipse.platform/org.eclipse.swt.win32.win32.x86_64 -->
         <dependency>
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.swt.win32.win32.x86_64</artifactId>
-            <version>3.119.0</version>
+            <version>3.129.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.swt</groupId>
-            <artifactId>org.eclipse.swt.win32.win32.x86_64</artifactId>
-            <version>4.3</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/net.java.jinput/jinput -->
         <dependency>
             <groupId>net.java.jinput</groupId>
             <artifactId>jinput</artifactId>
@@ -62,29 +56,12 @@
         </dependency>
 
         <dependency>
-            <!--execute, all on one line:
-            mvn install:install-file
-                -Dfile=lwjgl64.dll
-                -DgroupId=org.lwjgl.lwjgl
-                -DartifactId=lwjgl
-                -Dversion=<2.9.3>
-                -Dpackaging=dll
-                -DgeneratePom=true
-            -->
-            <groupId>org.lwjgl.lwjgl</groupId>
-            <artifactId>lwjgl</artifactId>
-            <version>2.9.3</version>
-            <scope>runtime</scope>
-            <classifier>x64</classifier>
-            <type>dll</type>
+            <groupId>org.joml</groupId>
+            <artifactId>joml</artifactId>
+            <version>1.10.8</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.lwjgl.lwjgl</groupId>
-            <artifactId>lwjgl_util</artifactId>
-            <version>2.9.3</version>
-        </dependency>
-
+        <!-- LWJGL core and modules -->
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
@@ -109,6 +86,8 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
         </dependency>
+
+        <!-- LWJGL native bindings -->
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
@@ -140,5 +119,4 @@
             <classifier>${lwjgl.natives}</classifier>
         </dependency>
     </dependencies>
-
 </project>

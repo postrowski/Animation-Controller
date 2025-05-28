@@ -1,5 +1,6 @@
 package ostrowski.graphics.objects3d;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.FloatBuffer;
@@ -8,11 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
-import org.lwjgl.BufferUtils;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
+
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.glu.Cylinder;
-import org.lwjgl.util.glu.GLU;
-import org.lwjgl.util.glu.Sphere;
+import org.lwjgl.system.MemoryStack;
 
 import ostrowski.graphics.GLView;
 import ostrowski.graphics.model.ObjLoader;
@@ -295,56 +297,105 @@ public abstract class BodyPart extends TexturedObject {
    public abstract void getParts(List<TexturedObject> parts);
 
    protected static void drawCylinder(float baseRadius, float topRadius, float height, int slices, int stacks) {
-      Cylinder cylinder = new Cylinder();
-      cylinder.setDrawStyle(GLU.GLU_FILL);
-      cylinder.setNormals(GLU.GLU_SMOOTH);
-      cylinder.draw(baseRadius, topRadius, height, slices, stacks);
+     // Custom Cylinder implementation (assumes topRadius == baseRadius)
+     Cylinder cylinder = new Cylinder(baseRadius, height, slices, stacks);
+     cylinder.draw();
    }
 
    protected static void drawSphere(float radius, int slices, int stacks) {
-      Sphere sphere = new Sphere();
-      sphere.setDrawStyle(GLU.GLU_FILL);
-      sphere.setNormals(GLU.GLU_SMOOTH);
-      sphere.draw(radius, slices, stacks);
+     Sphere sphere = new Sphere(radius, slices, stacks);
+     sphere.draw();
    }
 
-   public static FloatBuffer projectToWindowLocation() {
-      // Find the point of the current matrix origin (0,0,0):
-      float objX = 0;
-      float objY = 0;
-      float objZ = 0;
+    public static FloatBuffer projectToWindowLocation() {
+       float objX = 0;
+       float objY = 0;
+       float objZ = 0;
 
-      FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix);
+       try (MemoryStack stack = MemoryStack.stackPush()) {
+           FloatBuffer modelBuffer = stack.mallocFloat(16);
+           FloatBuffer projBuffer = stack.mallocFloat(16);
+           IntBuffer viewport = stack.mallocInt(4);
 
-      FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projMatrix);
+           GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, modelBuffer);
+           GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, projBuffer);
+           GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
 
-      IntBuffer viewport = BufferUtils.createIntBuffer(16);
-      GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
+           Matrix4f model = new Matrix4f();
+           Matrix4f proj = new Matrix4f();
 
-      FloatBuffer win_pos = BufferUtils.createFloatBuffer(3);
-      GLU.gluProject(objX, objY, objZ, modelMatrix, projMatrix, viewport, win_pos);
-      return win_pos;
+           model.set(modelBuffer);
+           proj.set(projBuffer);
+
+           // Model + Projection transformation
+           Matrix4f mvp = new Matrix4f();
+           proj.mul(model, mvp);
+
+           // Transform the origin
+           Vector4f in = new Vector4f(objX, objY, objZ, 1.0f);
+           Vector4f out = new Vector4f();
+           mvp.transform(in, out);
+
+           // Perspective division
+           if (out.w != 0.0f) {
+               out.x /= out.w;
+               out.y /= out.w;
+               out.z /= out.w;
+           }
+
+           // Map to window coordinates
+           float winX = viewport.get(0) + (1 + out.x) * viewport.get(2) / 2;
+           float winY = viewport.get(1) + (1 + out.y) * viewport.get(3) / 2;
+           float winZ = (1 + out.z) / 2;
+
+           FloatBuffer winPos = stack.mallocFloat(3);
+           winPos.put(0, winX);
+           winPos.put(1, winY);
+           winPos.put(2, winZ);
+           return winPos;
+       }
    }
 
-   public static FloatBuffer unProjectFromWindowLocation(FloatBuffer windowLocation) {
-      // Find the point of the current matrix origin (0,0,0):
+
+    public static FloatBuffer unProjectFromWindowLocation(FloatBuffer windowLocation) {
       float winX = windowLocation.get(0);
       float winY = windowLocation.get(1);
       float winZ = windowLocation.get(2);
 
-      FloatBuffer modelMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix);
+      try (MemoryStack stack = MemoryStack.stackPush()) {
+          FloatBuffer modelBuffer = stack.mallocFloat(16);
+          FloatBuffer projBuffer = stack.mallocFloat(16);
+          IntBuffer viewport = stack.mallocInt(4);
 
-      FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
-      GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projMatrix);
+          GL11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, modelBuffer);
+          GL11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, projBuffer);
+          GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
 
-      IntBuffer viewport = BufferUtils.createIntBuffer(16);
-      GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
+          Matrix4f model = new Matrix4f().set(modelBuffer);
+          Matrix4f proj = new Matrix4f().set(projBuffer);
+          Matrix4f inverse = new Matrix4f();
 
-      FloatBuffer obj_pos = BufferUtils.createFloatBuffer(3);
-      GLU.gluUnProject(winX, winY, winZ, modelMatrix, projMatrix, viewport, obj_pos);
-      return obj_pos;
-   }
-}
+          proj.mul(model, inverse).invert(); // Invert the combined matrix
+
+          // Normalize window coordinates to [-1, 1]
+          float ndcX = (winX - viewport.get(0)) / viewport.get(2) * 2.0f - 1.0f;
+          float ndcY = (winY - viewport.get(1)) / viewport.get(3) * 2.0f - 1.0f;
+          float ndcZ = 2.0f * winZ - 1.0f;
+
+          Vector4f screenPos = new Vector4f(ndcX, ndcY, ndcZ, 1.0f);
+          Vector4f objPos = new Vector4f();
+          inverse.transform(screenPos, objPos);
+
+          if (objPos.w != 0.0f) {
+              objPos.x /= objPos.w;
+              objPos.y /= objPos.w;
+              objPos.z /= objPos.w;
+          }
+
+          FloatBuffer result = stack.mallocFloat(3);
+          result.put(0, objPos.x);
+          result.put(1, objPos.y);
+          result.put(2, objPos.z);
+          return result;
+      }
+  }}

@@ -5,14 +5,16 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.glu.GLU;
 
 import ostrowski.graphics.GLView;
 import ostrowski.graphics.objects3d.BodyPart;
 import ostrowski.graphics.objects3d.HumanBody;
 import ostrowski.util.SemaphoreAutoTracker;
+import ostrowski.util.Util;
 
 /**
  * A OBJ model implementation that renders the data as a display
@@ -164,10 +166,18 @@ public class ObjModel
             // a position, normal and 32 coordinate
             // for each vertex in the face
             Tuple3 vert = face.getVertex(v);
-            GLU.gluProject(vert.getX(), vert.getY(), vert.getZ(), modelMatrix, projMatrix, viewport, win_pos);
-            float x = win_pos.get(0);
-            float y = win_pos.get(1);
-            float z = win_pos.get(2);
+            Matrix4f model = new Matrix4f().set(modelMatrix);
+            Matrix4f proj = new Matrix4f().set(projMatrix);
+            int[] vp = new int[] {viewport.get(0), viewport.get(1), viewport.get(2), viewport.get(3)};
+
+            Vector3f obj = new Vector3f(vert.x, vert.y, vert.z);
+            Vector3f win_pos_vec = new Vector3f();
+
+            Util.project(obj, model, proj, vp, win_pos_vec);
+            
+            float x = win_pos_vec.x;
+            float y = win_pos_vec.y;
+            float z = win_pos_vec.z;
             winPos3dList.add(new Tuple3(x, y, z));
 
             if (screenLocX >= x) {
